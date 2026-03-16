@@ -1,24 +1,20 @@
 package ru.vsu.tgbot.components;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
+import ru.vsu.tgbot.services.query.QueryService;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class TgUpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
-
-    public TgUpdateConsumer(@Value("${telegram.bot.token}") String token) {
-        this.telegramClient = new OkHttpTelegramClient(
-                "6436441263:AAFzZGluoG8JbMyQ2GpVkofCmhOemFs-hoo"
-        );
-    }
+    private final QueryService queryService;
 
     @Override
     public void consume(Update update) {
@@ -26,14 +22,7 @@ public class TgUpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             return;
         }
 
-        String text = update.getMessage().getText();
-        String chatId = update.getMessage().getChatId().toString();
-
-        SendMessage message = SendMessage
-                .builder()
-                .chatId(chatId)
-                .text(text)
-                .build();
+        SendMessage message = queryService.processQuery(update);
 
         try {
             telegramClient.execute(message);
