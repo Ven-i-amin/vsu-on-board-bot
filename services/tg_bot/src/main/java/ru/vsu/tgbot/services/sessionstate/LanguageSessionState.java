@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.services.statehandler;
+package ru.vsu.tgbot.services.sessionstate;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import ru.vsu.tgbot.model.SessionInfo;
+import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.session.SessionService;
 import ru.vsu.tgbot.util.BotState;
 import ru.vsu.tgbot.util.Language;
@@ -18,25 +18,25 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class LanguageStateHandler implements StateHandler{
+public class LanguageSessionState implements SessionState {
     private SessionService sessionService;
 
     @Override
-    public SendMessage handle(Long chatId, String text, SessionInfo session) {
-        if (session.getMessageState() == MessageState.ANSWER) {
-            return answer(chatId, text, session);
+    public SendMessage handle(SessionDto sessionDto) {
+        if (sessionDto.messageState() == MessageState.ANSWER) {
+            return answer(sessionDto);
         } else {
-            return listen(chatId, text, session);
+            return listen(sessionDto);
         }
     }
 
 
-    private SendMessage answer(Long chatId, String text, SessionInfo session) {
+    private SendMessage answer(SessionDto sessionInfo) {
         SendMessage.SendMessageBuilder<?, ?> messageBuilder = SendMessage.builder();
 
-        messageBuilder.chatId(chatId);
+        messageBuilder.chatId(sessionInfo.chatId());
 
-        messageBuilder.text(text);
+        messageBuilder.text(sessionInfo.text());
 
         List<InlineKeyboardRow> keyboardRows = new ArrayList<>();
 
@@ -52,13 +52,13 @@ public class LanguageStateHandler implements StateHandler{
 
         messageBuilder.replyMarkup(markup);
 
-        session.setMessageState(MessageState.LISTEN);
+
         sessionService.saveSession(chatId, session);
 
         return messageBuilder.build();
     }
 
-    private SendMessage listen(Long chatId, String text, SessionInfo session) {
+    private SendMessage listen(SessionDto sessionInfo) {
         Language language = Arrays.stream(Language.values())
                 .filter(lang -> lang.getValue().equals(text))
                 .findFirst()

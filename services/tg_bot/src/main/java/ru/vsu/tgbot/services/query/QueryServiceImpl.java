@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.vsu.tgbot.components.StateHandlerRegistry;
-import ru.vsu.tgbot.model.SessionInfo;
-import ru.vsu.tgbot.model.User;
+import ru.vsu.tgbot.components.SessionStateRegistry;
+import ru.vsu.tgbot.model.entity.Session;
+import ru.vsu.tgbot.model.entity.User;
 import ru.vsu.tgbot.services.core.CoreService;
 import ru.vsu.tgbot.services.session.SessionService;
 import ru.vsu.tgbot.util.BotState;
@@ -19,7 +19,7 @@ import java.util.List;
 public class QueryServiceImpl implements QueryService{
     private SessionService sessionService;
     private CoreService coreService;
-    private StateHandlerRegistry stateHandler;
+    private SessionStateRegistry stateHandler;
 
     @Override
     public SendMessage processQuery(Update update) {
@@ -27,7 +27,7 @@ public class QueryServiceImpl implements QueryService{
         String text = update.getMessage().getText();
 
         SendMessage sendMessage;
-        SessionInfo session = sessionService.getSession(chatId);
+        Session session = sessionService.getSession(chatId);
 
         if (session == null) {
             User user = coreService.getUser(chatId);
@@ -45,7 +45,7 @@ public class QueryServiceImpl implements QueryService{
     }
 
     private SendMessage newUser(Long chatId, String text) {
-        SessionInfo session = SessionInfo
+        Session session = Session
                 .builder()
                 .messageState(MessageState.ANSWER)
                 .state(List.of(BotState.LANGUAGE))
@@ -57,7 +57,7 @@ public class QueryServiceImpl implements QueryService{
     }
 
     private SendMessage oldUser(Long chatId, String text) {
-        SessionInfo session = SessionInfo
+        Session session = Session
                 .builder()
                 .messageState(MessageState.ANSWER)
                 .state(List.of(BotState.WELCOME))
