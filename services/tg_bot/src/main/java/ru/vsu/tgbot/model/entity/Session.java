@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.model;
+package ru.vsu.tgbot.model.entity;
 
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class SessionInfo {
+public class Session {
     @NotNull
     private MessageState messageState;
     @NotNull

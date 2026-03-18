@@ -1,8 +1,7 @@
 package ru.vsu.tgbot.services.core;
 
 import org.springframework.stereotype.Service;
-import ru.vsu.tgbot.model.User;
-import ru.vsu.tgbot.services.query.QueryService;
+import ru.vsu.tgbot.model.entity.User;
 
 @Service
 public class CoreServiceImpl implements CoreService {

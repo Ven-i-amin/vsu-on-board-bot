@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.model;
+package ru.vsu.tgbot.model.entity;
 
 import lombok.Builder;
 import lombok.Data;

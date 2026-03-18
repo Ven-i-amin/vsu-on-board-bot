@@ -1,8 +1,8 @@
 package ru.vsu.tgbot.services.session;
 
-import ru.vsu.tgbot.model.SessionInfo;
+import ru.vsu.tgbot.model.entity.Session;
 
 public interface SessionService {
-    void saveSession(Long id, SessionInfo session);
-    SessionInfo getSession(Long chatId);
+    void saveSession(Session session);
+    Session getSession(Long chatId);
 }
