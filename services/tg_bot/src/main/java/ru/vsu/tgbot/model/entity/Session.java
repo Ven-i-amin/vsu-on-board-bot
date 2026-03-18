@@ -15,6 +15,6 @@ public class Session {
     private MessageState messageState;
     @NotNull
     private List<BotState> state;
-    private List<QuestionAndAnswer> questionAndAnswers;
+    private List<QuestionAndAnswer> group;
     private String language;
 }
