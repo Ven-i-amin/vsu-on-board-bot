@@ -13,7 +13,7 @@ public record SessionDto(
         String text,
         MessageState messageState,
         List<BotState> state,
-        List<QuestionAndAnswer> questionAndAnswer,
+        List<QuestionAndAnswer> group,
         String language
 ) {
 }
