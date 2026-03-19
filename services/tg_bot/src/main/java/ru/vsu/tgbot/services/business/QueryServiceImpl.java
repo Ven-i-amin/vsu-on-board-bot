@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.vsu.tgbot.components.SessionStateRegistry;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.model.response.UserResponseDto;
+import ru.vsu.tgbot.model.dto.UserDto;
 import ru.vsu.tgbot.services.core.UserService;
 import ru.vsu.tgbot.services.session.SessionService;
 import ru.vsu.tgbot.util.MessageState;
@@ -32,7 +32,7 @@ public class QueryServiceImpl implements QueryService {
         SessionDto sessionDto = sessionService.getSession(chatId);
 
         if (sessionDto == null) {
-            UserResponseDto user = userService.getUser(chatId);
+            UserDto user = userService.getUser(chatId);
 
             String language = user == null ? null : user.getLanguage();
 

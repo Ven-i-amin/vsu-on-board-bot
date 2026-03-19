@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
-import ru.vsu.tgbot.model.response.GroupResponseDto;
+import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
 
@@ -27,8 +27,8 @@ public class Session {
     private BotState botState;
     @NotNull
     private MessageState messageState;
-    private GroupResponseDto start;
+    private GroupDto start;
     @NotNull
-    private List<GroupResponseDto> groupWindow = new ArrayList<>();
+    private List<GroupDto> groupWindow = new ArrayList<>();
     private String language;
 }

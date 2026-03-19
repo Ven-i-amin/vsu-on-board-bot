@@ -1,8 +1,8 @@
 package ru.vsu.tgbot.services.core;
 
-import ru.vsu.tgbot.model.response.UserResponseDto;
+import ru.vsu.tgbot.model.dto.UserDto;
 
 public interface UserService {
-    UserResponseDto getUser(Long chatId);
-    void addUser(UserResponseDto user);
+    UserDto getUser(Long chatId);
+    void addUser(UserDto user);
 }

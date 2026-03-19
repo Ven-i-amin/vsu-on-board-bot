@@ -8,9 +8,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
+import ru.vsu.tgbot.model.dto.GroupDto;
+import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.model.response.GroupResponseDto;
-import ru.vsu.tgbot.model.response.QuestionResponseDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
 import ru.vsu.tgbot.util.GroupUtil;
 import ru.vsu.tgbot.util.MessageState;
@@ -58,9 +58,9 @@ public class GroupSessionState implements SessionState {
 
         String text = sessionDto.getText();
 
-        GroupResponseDto currentGroup = GroupUtil.getCurrentGroup(sessionDto.getGroupWindow());
+        GroupDto currentGroup = GroupUtil.getCurrentGroup(sessionDto.getGroupWindow());
 
-        GroupResponseDto selectedGroup = currentGroup.innerGroups().stream()
+        GroupDto selectedGroup = currentGroup.innerGroups().stream()
                 .filter(gr -> gr.title().equals(text))
                 .findFirst()
                 .orElse(null);
@@ -70,13 +70,13 @@ public class GroupSessionState implements SessionState {
             return;
         }
 
-        QuestionResponseDto selectedQuestion = currentGroup.questions().stream()
+        QuestionDto selectedQuestion = currentGroup.questions().stream()
                 .filter(question -> question.getTitle().equals(text))
                 .findFirst()
                 .orElse(null);
 
         if (selectedQuestion != null) {
-            GroupResponseDto questionGroup = GroupResponseDto.builder()
+            GroupDto questionGroup = GroupDto.builder()
                     .title("")
                     .questions(List.of(selectedQuestion))
                     .parentId(selectedQuestion.getParent().parentId())
@@ -111,13 +111,13 @@ public class GroupSessionState implements SessionState {
     }
 
     private static List<String> getAllTitles(SessionDto sessionDto) {
-        GroupResponseDto currentGroup = sessionDto.getGroupWindow().getLast();
+        GroupDto currentGroup = sessionDto.getGroupWindow().getLast();
         List<String> titles = new ArrayList<>();
 
-        titles.addAll(currentGroup.innerGroups().stream().map(GroupResponseDto::title).toList());
-        titles.addAll(currentGroup.questions().stream().map(QuestionResponseDto::getTitle).toList());
+        titles.addAll(currentGroup.innerGroups().stream().map(GroupDto::title).toList());
+        titles.addAll(currentGroup.questions().stream().map(QuestionDto::getTitle).toList());
 
-        QuestionResponseDto back = GroupUtil.getSpecialQuestion(sessionDto, "back");
+        QuestionDto back = GroupUtil.getSpecialQuestion(sessionDto, "back");
 
         titles.add(back.getTitle());
 
