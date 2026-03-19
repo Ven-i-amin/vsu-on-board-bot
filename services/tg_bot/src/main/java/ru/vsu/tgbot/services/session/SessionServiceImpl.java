@@ -3,8 +3,8 @@ package ru.vsu.tgbot.services.session;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.components.mapper.SessionMapper;
+import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.model.response.GroupResponseDto;
 import ru.vsu.tgbot.repository.SessionRepository;
 
 import java.util.ArrayList;
@@ -38,8 +38,8 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public void patchSessionByGroupPath(Long chatId, List<GroupResponseDto> groupPath) {
-        List<GroupResponseDto> groupPathSnapshot = List.copyOf(new ArrayList<>(groupPath));
+    public void patchSessionByGroupPath(Long chatId, List<GroupDto> groupPath) {
+        List<GroupDto> groupPathSnapshot = List.copyOf(new ArrayList<>(groupPath));
 
         GroupPathPatchTask patchTask = patchTasksByChatId.computeIfAbsent(
                 chatId,
@@ -61,7 +61,7 @@ public class SessionServiceImpl implements SessionService {
         }
     }
 
-    private void doPatchSessionByGroupPath(Long chatId, List<GroupResponseDto> groupPath) {
+    private void doPatchSessionByGroupPath(Long chatId, List<GroupDto> groupPath) {
         sessionRepository.findById(chatId)
                 .ifPresent(session -> {
                     session.setGroupWindow(groupPath);
@@ -71,7 +71,7 @@ public class SessionServiceImpl implements SessionService {
 
     private void processLatestGroupPath(Long chatId, GroupPathPatchTask patchTask) {
         while (true) {
-            List<GroupResponseDto> groupPathToPatch;
+            List<GroupDto> groupPathToPatch;
 
             synchronized (patchTask) {
                 groupPathToPatch = patchTask.latestGroupPath;
@@ -93,7 +93,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     private static class GroupPathPatchTask {
-        private List<GroupResponseDto> latestGroupPath;
+        private List<GroupDto> latestGroupPath;
         private boolean running;
     }
 }

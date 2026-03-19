@@ -8,9 +8,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
+import ru.vsu.tgbot.model.dto.LanguageDto;
+import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.model.response.LanguageResponseDto;
-import ru.vsu.tgbot.model.response.QuestionResponseDto;
 import ru.vsu.tgbot.services.core.LanguageService;
 import ru.vsu.tgbot.util.GroupUtil;
 import ru.vsu.tgbot.util.MessageState;
@@ -24,7 +24,7 @@ import java.util.List;
 public class LanguageSessionState implements SessionState {
     private final LanguageService languageService;
 
-    private List<LanguageResponseDto> languages;
+    private List<LanguageDto> languages;
 
     @PostConstruct
     private void init() {
@@ -51,12 +51,12 @@ public class LanguageSessionState implements SessionState {
         SendMessage.SendMessageBuilder<?, ?> messageBuilder = SendMessage.builder();
         messageBuilder.chatId(sessionDto.getChatId());
 
-        QuestionResponseDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_listen");
+        QuestionDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_listen");
         messageBuilder.text(question.getText());
 
         List<InlineKeyboardRow> keyboardRows = new ArrayList<>();
 
-        for (LanguageResponseDto language : languages) {
+        for (LanguageDto language : languages) {
             InlineKeyboardRow row = new InlineKeyboardRow();
             InlineKeyboardButton button = new InlineKeyboardButton(language.name());
 
@@ -74,7 +74,7 @@ public class LanguageSessionState implements SessionState {
     private SendMessage listen(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.SEND);
 
-        LanguageResponseDto language = languages.stream()
+        LanguageDto language = languages.stream()
                 .filter(lang -> lang.name().equals(sessionDto.getText()))
                 .findFirst()
                 .orElse(null);
@@ -85,7 +85,7 @@ public class LanguageSessionState implements SessionState {
 
         sessionDto.setLanguage(language.code());
 
-        QuestionResponseDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_answer");
+        QuestionDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_answer");
 
         return SendMessage
                 .builder()

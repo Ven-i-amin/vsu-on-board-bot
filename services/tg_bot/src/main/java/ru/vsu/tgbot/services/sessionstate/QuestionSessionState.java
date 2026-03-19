@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
+import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.model.response.QuestionResponseDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
 import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.MessageState;
@@ -34,7 +34,7 @@ public class QuestionSessionState implements SessionState {
 
         builder.chatId(sessionDto.getChatId());
 
-        QuestionResponseDto question = sessionDto.getGroupWindow()
+        QuestionDto question = sessionDto.getGroupWindow()
                 .getLast()
                 .questions()
                 .getFirst();

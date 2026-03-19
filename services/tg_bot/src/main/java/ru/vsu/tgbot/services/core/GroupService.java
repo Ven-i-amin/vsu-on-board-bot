@@ -1,14 +1,14 @@
 package ru.vsu.tgbot.services.core;
 
-import ru.vsu.tgbot.model.response.GroupResponseDto;
+import ru.vsu.tgbot.model.dto.GroupDto;
 
 import java.util.List;
 
 public interface GroupService {
-    GroupResponseDto getQuestionGroup(String groupId, String language);
-    GroupResponseDto getGroupWithRecursion(String groupId, Integer recursion, String language);
-    List<GroupResponseDto> getInnerGroups(String thisGroupId, String language);
-    List<GroupResponseDto> getInnerGroupsForEachGroup(List<String> groupIds, String language);
-    GroupResponseDto getStartGroup(String language);
-    GroupResponseDto getStartGroup();
+    GroupDto getQuestionGroup(String groupId, String language);
+    GroupDto getGroupWithDepth(String groupId, Integer depth, String language);
+    List<GroupDto> getInnerGroups(String thisGroupId, String language);
+    List<GroupDto> getInnerGroupsForEachGroup(List<String> groupIds, String language);
+    GroupDto getStartGroup(String language);
+    GroupDto getStartGroup();
 }

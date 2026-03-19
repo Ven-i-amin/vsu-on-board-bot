@@ -2,8 +2,8 @@ package ru.vsu.tgbot.services.business;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.model.response.GroupResponseDto;
 import ru.vsu.tgbot.services.core.GroupService;
 import ru.vsu.tgbot.services.session.SessionService;
 
@@ -19,24 +19,24 @@ public class GroupWindowServiceImpl implements GroupWindowService {
     private GroupService groupService;
 
     @Override
-    public void moveForward(SessionDto sessionDto, GroupResponseDto newGroup) {
-        List<GroupResponseDto> groupPath = sessionDto.getGroupWindow();
+    public void moveForward(SessionDto sessionDto, GroupDto newGroup) {
+        List<GroupDto> groupPath = sessionDto.getGroupWindow();
 
         groupPath.removeFirst();
         groupPath.add(newGroup);
 
-        List<GroupResponseDto> updateGroup = new ArrayList<>(List.of(newGroup));
+        List<GroupDto> updateGroup = new ArrayList<>(List.of(newGroup));
 
         for (int i = 1; i < WINDOW_SIZE; i++) {
             updateGroup = updateGroup.stream()
-                            .map(GroupResponseDto::innerGroups)
+                            .map(GroupDto::innerGroups)
                             .flatMap(Collection::stream)
                             .toList();
         }
 
-        List<String> updateGroupId = updateGroup.stream().map(GroupResponseDto::groupId).toList();
+        List<String> updateGroupId = updateGroup.stream().map(GroupDto::groupId).toList();
 
-        List<GroupResponseDto> uploadedGroups = groupService.getInnerGroupsForEachGroup(
+        List<GroupDto> uploadedGroups = groupService.getInnerGroupsForEachGroup(
                 updateGroupId,
                 sessionDto.getLanguage()
         );
@@ -52,7 +52,7 @@ public class GroupWindowServiceImpl implements GroupWindowService {
 
     @Override
     public void moveBackward(SessionDto sessionDto) {
-        List<GroupResponseDto> groupPath = sessionDto.getGroupWindow();
+        List<GroupDto> groupPath = sessionDto.getGroupWindow();
 
         if (groupPath.size() == 1) {
             return;
@@ -60,7 +60,7 @@ public class GroupWindowServiceImpl implements GroupWindowService {
 
         groupPath.removeLast();
 
-        GroupResponseDto parentGroup = groupService.getGroupWithRecursion(
+        GroupDto parentGroup = groupService.getGroupWithDepth(
                 groupPath.getFirst().parentId(),
                 WINDOW_SIZE,
                 sessionDto.getLanguage()
@@ -73,7 +73,7 @@ public class GroupWindowServiceImpl implements GroupWindowService {
 
     @Override
     public void moveToStart(SessionDto sessionDto) {
-        List<GroupResponseDto> groupPath = sessionDto.getGroupWindow();
+        List<GroupDto> groupPath = sessionDto.getGroupWindow();
 
         groupPath.clear();
         groupPath.add(sessionDto.getStart());
