@@ -9,10 +9,12 @@ import ru.vsu.core.service.LocalizedGroupService;
 
 import java.util.List;
 
+import static ru.vsu.core.service.impl.LocalizedGroupServiceImpl.DEFAULT_LANGUAGE_CODE;
+
 @RestController
 @RequestMapping("/group")
 @AllArgsConstructor
-public class InnerGroupController {
+public class GroupController {
     private final LocalizedGroupService localizedGroupService;
     private final ResponseMapper responseMapper;
 
@@ -22,9 +24,11 @@ public class InnerGroupController {
             @RequestParam("lang") String language,
             @RequestParam(value = "depth", defaultValue = "0") Integer depth
     ) {
-        return locТакже alizedGroupService.findById(groupId, language, depth)
-                .map(responseMapper::toResponse)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        GroupResponseDto group = responseMapper.toResponse(localizedGroupService.findById(groupId, language, depth));
+        if (group == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return group;
     }
 
     @GetMapping("/{groupId}/inner")
@@ -46,5 +50,14 @@ public class InnerGroupController {
                 .map(responseMapper::toResponse)
                 .toList();
     }
-}
 
+    @GetMapping("/start")
+    public GroupResponseDto getStartGroup(@RequestParam(value = "lang", required = false) String language) {
+        String resolvedLanguage = language == null || language.isBlank() ? DEFAULT_LANGUAGE_CODE : language;
+        GroupResponseDto group = responseMapper.toResponse(localizedGroupService.findStartGroup(resolvedLanguage, 3));
+        if (group == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return group;
+    }
+}

@@ -1,0 +1,12 @@
+package ru.vsu.core.service;
+
+import ru.vsu.core.model.dto.UserDto;
+
+import java.util.List;
+
+public interface UserService {
+    List<UserDto> findAll();
+    UserDto findByChatId(Long chatId);
+    UserDto save(UserDto user);
+    void deleteByChatId(Long chatId);
+}
