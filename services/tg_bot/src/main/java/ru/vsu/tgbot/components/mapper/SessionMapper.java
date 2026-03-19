@@ -1,14 +1,38 @@
 package ru.vsu.tgbot.components.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.model.entity.Session;
 
-@Mapper()
 public interface SessionMapper {
-    SessionMapper INSTANCE = Mappers.getMapper(SessionMapper.class);
+    SessionMapper INSTANCE = new SessionMapper() {
+    };
 
-    SessionDto sessionToSessionDto(Session session);
-    Session sessionDtoToSession(SessionDto sessionDto);
+    default SessionDto sessionToSessionDto(Session session, String text) {
+        if (session == null) {
+            return null;
+        }
+
+        return SessionDto.builder()
+                .chatId(session.getChatId())
+                .text(text)
+                .botState(session.getBotState())
+                .messageState(session.getMessageState())
+                .titlePath(session.getGroupWindow())
+                .language(session.getLanguage())
+                .build();
+    }
+
+    default Session sessionDtoToSession(SessionDto sessionDto) {
+        if (sessionDto == null) {
+            return null;
+        }
+
+        return Session.builder()
+                .chatId(sessionDto.getChatId())
+                .botState(sessionDto.getBotState())
+                .messageState(sessionDto.getMessageState())
+                .groupWindow(sessionDto.getTitlePath())
+                .language(sessionDto.getLanguage())
+                .build();
+    }
 }

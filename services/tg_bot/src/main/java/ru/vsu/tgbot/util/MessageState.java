@@ -1,6 +1,9 @@
 package ru.vsu.tgbot.util;
 
 public enum MessageState {
-    ANSWER,
-    LISTEN
+    LANGUAGE,
+    WELCOME,
+    GROUP,
+    QUESTION,
+    ERROR
 }
