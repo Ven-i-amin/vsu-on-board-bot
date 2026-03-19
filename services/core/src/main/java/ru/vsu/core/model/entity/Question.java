@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -15,11 +14,11 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document
-public class Group {
+public class Question {
     @Id
-    private String groupId;
+    private String questionId;
+    private String name;
+    private String parent;
     private Map<String, String> title;
-    private String parentId;
-    private List<String> innerGroups;
-    private List<String> questions;
+    private Map<String, String> text;
 }

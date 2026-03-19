@@ -7,19 +7,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-import java.util.Map;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Document
-public class Group {
+public class User {
     @Id
-    private String groupId;
-    private Map<String, String> title;
-    private String parentId;
-    private List<String> innerGroups;
-    private List<String> questions;
+    private Long chatId;
+    private String languageCode;
 }
