@@ -1,11 +1,11 @@
 package ru.vsu.tgbot.services.sessionstate;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.util.BotState;
+import ru.vsu.tgbot.util.MessageState;
 
 public interface SessionState {
-    SendMessage handle(SessionDto sessionDto);
-    BotState getState();
 
+    void handle(SessionDto sessionDto, BotMessageSender sender);
+    MessageState getState();
 }

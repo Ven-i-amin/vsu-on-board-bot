@@ -1,46 +1,62 @@
 package ru.vsu.tgbot.services.sessionstate;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.session.SessionService;
-import ru.vsu.tgbot.util.BotState;
-import ru.vsu.tgbot.util.Language;
+import ru.vsu.tgbot.model.response.LanguageResponseDto;
+import ru.vsu.tgbot.model.response.QuestionResponseDto;
+import ru.vsu.tgbot.services.core.LanguageService;
+import ru.vsu.tgbot.util.GroupUtil;
 import ru.vsu.tgbot.util.MessageState;
+import ru.vsu.tgbot.util.BotState;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class LanguageSessionState implements SessionState {
-    private SessionService sessionService;
+    private final LanguageService languageService;
+
+    private List<LanguageResponseDto> languages;
+
+    @PostConstruct
+    private void init() {
+        languages = languageService.getLanguages();
+    }
 
     @Override
-    public SendMessage handle(SessionDto sessionDto) {
-        if (sessionDto.messageState() == MessageState.ANSWER) {
-            return answer(sessionDto);
+    public void handle(SessionDto sessionDto, BotMessageSender sender) {
+        if (sessionDto.getBotState() == BotState.SEND) {
+            sender.send(answer(sessionDto));
         } else {
-            return listen(sessionDto);
+            SendMessage message = listen(sessionDto);
+
+            if (message != null) {
+                sender.send(message);
+            }
         }
     }
 
 
-    private SendMessage answer(SessionDto sessionInfo) {
+    private SendMessage answer(SessionDto sessionDto) {
+        sessionDto.setBotState(BotState.LISTEN);
+
         SendMessage.SendMessageBuilder<?, ?> messageBuilder = SendMessage.builder();
+        messageBuilder.chatId(sessionDto.getChatId());
 
-        messageBuilder.chatId(sessionInfo.chatId());
-
-        messageBuilder.text(sessionInfo.text());
+        QuestionResponseDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_listen");
+        messageBuilder.text(question.getText());
 
         List<InlineKeyboardRow> keyboardRows = new ArrayList<>();
 
-        for (Language language : Language.values()) {
+        for (LanguageResponseDto language : languages) {
             InlineKeyboardRow row = new InlineKeyboardRow();
             InlineKeyboardButton button = new InlineKeyboardButton(language.name());
 
@@ -52,15 +68,14 @@ public class LanguageSessionState implements SessionState {
 
         messageBuilder.replyMarkup(markup);
 
-
-        sessionService.saveSession(chatId, session);
-
         return messageBuilder.build();
     }
 
-    private SendMessage listen(SessionDto sessionInfo) {
-        Language language = Arrays.stream(Language.values())
-                .filter(lang -> lang.getValue().equals(text))
+    private SendMessage listen(SessionDto sessionDto) {
+        sessionDto.setBotState(BotState.SEND);
+
+        LanguageResponseDto language = languages.stream()
+                .filter(lang -> lang.name().equals(sessionDto.getText()))
                 .findFirst()
                 .orElse(null);
 
@@ -68,20 +83,19 @@ public class LanguageSessionState implements SessionState {
             return null;
         }
 
-        session.setLanguage(language.getValue());
-        sessionService.saveSession(chatId, session);
+        sessionDto.setLanguage(language.code());
+
+        QuestionResponseDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_answer");
 
         return SendMessage
                 .builder()
-                .chatId(chatId)
-                .text("TO DO")
+                .chatId(sessionDto.getChatId())
+                .text(question.getText())
                 .build();
     }
 
     @Override
-    public BotState getState() {
-        return BotState.LANGUAGE;
+    public MessageState getState() {
+        return MessageState.LANGUAGE;
     }
-
-
 }

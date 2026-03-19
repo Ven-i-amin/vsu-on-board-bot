@@ -1,8 +1,8 @@
 package ru.vsu.tgbot.components;
 
 import org.springframework.stereotype.Component;
-import ru.vsu.tgbot.util.BotState;
 import ru.vsu.tgbot.services.sessionstate.SessionState;
+import ru.vsu.tgbot.util.MessageState;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class SessionStateRegistry {
-    private final Map<BotState, SessionState> stateHandlers;
+    private final Map<MessageState, SessionState> stateHandlers;
 
     public SessionStateRegistry(List<SessionState> handlers) {
         this.stateHandlers = handlers
@@ -24,7 +24,7 @@ public class SessionStateRegistry {
                 );
     }
 
-    public SessionState getHandler(BotState state) {
+    public SessionState getHandler(MessageState state) {
         return stateHandlers.get(state);
     }
 }

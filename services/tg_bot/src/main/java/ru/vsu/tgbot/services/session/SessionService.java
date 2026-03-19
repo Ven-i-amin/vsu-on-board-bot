@@ -1,8 +1,13 @@
 package ru.vsu.tgbot.services.session;
 
-import ru.vsu.tgbot.model.entity.Session;
+import ru.vsu.tgbot.model.dto.SessionDto;
+import ru.vsu.tgbot.model.response.GroupResponseDto;
+
+import java.util.List;
 
 public interface SessionService {
-    void saveSession(Session session);
-    Session getSession(Long chatId);
+    void saveSession(SessionDto session);
+    SessionDto getSession(Long chatId);
+    void deleteSession(Long chatId);
+    void patchSessionByGroupPath(Long chatId, List<GroupResponseDto> groupPath);
 }
