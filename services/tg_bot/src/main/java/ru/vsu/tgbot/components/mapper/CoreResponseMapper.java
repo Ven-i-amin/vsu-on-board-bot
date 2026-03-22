@@ -1,14 +1,8 @@
 package ru.vsu.tgbot.components.mapper;
 
 import org.mapstruct.Mapper;
-import ru.vsu.tgbot.model.dto.GroupDto;
-import ru.vsu.tgbot.model.dto.LanguageDto;
-import ru.vsu.tgbot.model.dto.QuestionDto;
-import ru.vsu.tgbot.model.dto.UserDto;
-import ru.vsu.tgbot.model.response.GroupResponseDto;
-import ru.vsu.tgbot.model.response.LanguageResponseDto;
-import ru.vsu.tgbot.model.response.QuestionResponseDto;
-import ru.vsu.tgbot.model.response.UserResponseDto;
+import ru.vsu.tgbot.model.dto.*;
+import ru.vsu.tgbot.model.response.*;
 
 import java.util.List;
 
@@ -29,4 +23,7 @@ public interface CoreResponseMapper {
     UserDto toUserDto(UserResponseDto userResponseDto);
 
     UserResponseDto toUserResponseDto(UserDto userDto);
+
+    UiMessageDto toUiMessageDto(UiMessageResponse uiMessageResponseDto);
+    List<UiMessageDto> toUiMessageDtoList(List<UiMessageResponse> uiMessageResponseDtos);
 }

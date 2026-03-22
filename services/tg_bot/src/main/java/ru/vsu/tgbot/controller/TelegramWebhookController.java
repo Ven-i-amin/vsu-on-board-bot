@@ -1,6 +1,7 @@
 package ru.vsu.tgbot.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -13,6 +14,7 @@ import ru.vsu.tgbot.components.bot.TgUpdateConsumer;
 import ru.vsu.tgbot.config.TelegramBotProperties;
 
 @RestController
+@ConditionalOnProperty(name = "telegram.bot.mode", havingValue = "webhook")
 @RequiredArgsConstructor
 public class TelegramWebhookController {
     private static final String TELEGRAM_SECRET_HEADER = "X-Telegram-Bot-Api-Secret-Token";

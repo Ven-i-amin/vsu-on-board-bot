@@ -4,10 +4,15 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+core:
+  base-url: ${CORE_BASE_URL:http://localhost:8081}
+
 telegram:
   bot:
+    mode: ${TELEGRAM_BOT_MODE:long-polling}
     token: ${TELEGRAM_BOT_TOKEN:}
     webhook-url: ${TELEGRAM_WEBHOOK_URL:}
     webhook-path: ${TELEGRAM_WEBHOOK_PATH:/telegram/webhook}
     secret-token: ${TELEGRAM_WEBHOOK_SECRET:}
     auto-register: ${TELEGRAM_WEBHOOK_AUTO_REGISTER:true}
+    polling-timeout-seconds: ${TELEGRAM_POLLING_TIMEOUT_SECONDS:30}

@@ -1,16 +1,21 @@
 package ru.vsu.tgbot.services.sessionstate;
 
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
-import ru.vsu.tgbot.util.MessageUtil;
-import ru.vsu.tgbot.util.MessageState;
+import ru.vsu.tgbot.services.business.UiMessageControlService;
 import ru.vsu.tgbot.util.BotState;
+import ru.vsu.tgbot.util.MessageState;
+import ru.vsu.tgbot.util.StateHandlerUtil;
+import ru.vsu.tgbot.util.UiMessage;
 
 import java.util.List;
 
@@ -18,6 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 public class QuestionSessionState implements SessionState {
     private final GroupWindowService groupWindowService;
+    private final UiMessageControlService uiMessageService;
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
@@ -39,12 +45,17 @@ public class QuestionSessionState implements SessionState {
                 .questions()
                 .getFirst();
 
-        builder.text(question.getText());
+        builder.text(question.getText().get(sessionDto.getLangCode()));
 
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(List.of(
-                MessageUtil.getBackButtonRow(sessionDto),
-                MessageUtil.getToStartButtonRow(sessionDto)
-        ));
+        List<InlineKeyboardRow> column = StateHandlerUtil.getButtonColumn(
+                List.of(
+                uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode()),
+                uiMessageService.getUiMessageText(UiMessage.START, sessionDto.getLangCode())
+                ),
+                1
+        );
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(column);
 
         builder.replyMarkup(markup);
 
@@ -54,12 +65,14 @@ public class QuestionSessionState implements SessionState {
     private void listen(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.SEND);
 
-        if (MessageUtil.isBackButton(sessionDto)) {
+        String text = sessionDto.getText();
+
+        if (text.equals(UiMessage.BACK.getValue())) {
             groupWindowService.moveBackward(sessionDto);
             return;
         }
 
-        if (MessageUtil.isToStartButton(sessionDto)) {
+        if (text.equals(UiMessage.START.getValue())) {
             groupWindowService.moveToStart(sessionDto);
         }
     }

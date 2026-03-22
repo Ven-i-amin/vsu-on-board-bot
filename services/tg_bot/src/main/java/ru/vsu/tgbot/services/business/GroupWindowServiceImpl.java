@@ -38,7 +38,7 @@ public class GroupWindowServiceImpl implements GroupWindowService {
 
         List<GroupDto> uploadedGroups = groupService.getInnerGroupsForEachGroup(
                 updateGroupId,
-                sessionDto.getLanguage()
+                sessionDto.getLangCode()
         );
 
         updateGroup.forEach(group -> group.innerGroups().addAll(
@@ -63,7 +63,7 @@ public class GroupWindowServiceImpl implements GroupWindowService {
         GroupDto parentGroup = groupService.getGroupWithDepth(
                 groupPath.getFirst().parentId(),
                 WINDOW_SIZE,
-                sessionDto.getLanguage()
+                sessionDto.getLangCode()
         );
 
         groupPath.addFirst(parentGroup);

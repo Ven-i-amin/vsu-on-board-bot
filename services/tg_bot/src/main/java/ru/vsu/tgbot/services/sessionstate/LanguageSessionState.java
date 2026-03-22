@@ -1,35 +1,33 @@
 package ru.vsu.tgbot.services.sessionstate;
 
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.LanguageDto;
-import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
+import ru.vsu.tgbot.services.business.UiMessageControlService;
 import ru.vsu.tgbot.services.core.LanguageService;
-import ru.vsu.tgbot.util.GroupUtil;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
+import ru.vsu.tgbot.util.StateHandlerUtil;
+import ru.vsu.tgbot.util.UiMessage;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class LanguageSessionState implements SessionState {
+    public static final int LANGUAGE_ROW_SIZE = 1;
     private final LanguageService languageService;
+    private final UiMessageControlService uiMessageService;
 
     private List<LanguageDto> languages;
-
-    @PostConstruct
-    private void init() {
-        languages = languageService.getLanguages();
-    }
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
@@ -47,24 +45,30 @@ public class LanguageSessionState implements SessionState {
 
     private SendMessage answer(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.LISTEN);
+        List<LanguageDto> availableLanguages = getLanguagesSafely();
 
         SendMessage.SendMessageBuilder<?, ?> messageBuilder = SendMessage.builder();
         messageBuilder.chatId(sessionDto.getChatId());
 
-        QuestionDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_listen");
-        messageBuilder.text(question.getText());
-
-        List<InlineKeyboardRow> keyboardRows = new ArrayList<>();
-
-        for (LanguageDto language : languages) {
-            InlineKeyboardRow row = new InlineKeyboardRow();
-            InlineKeyboardButton button = new InlineKeyboardButton(language.name());
-
-            row.add(button);
-            keyboardRows.add(row);
+        if (availableLanguages.isEmpty()) {
+            messageBuilder.text("Language list is temporarily unavailable. Please try again later.");
+            return messageBuilder.build();
         }
 
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboardRows);
+        String questionText = uiMessageService.getUiMessageText(
+                UiMessage.QUESTION_ANSWER,
+                sessionDto.getLangCode()
+        );
+        messageBuilder.text(questionText);
+
+        List<InlineKeyboardRow> languageColumn = StateHandlerUtil.getButtonColumn(
+                languages.stream()
+                        .map(LanguageDto::name)
+                        .toList(),
+                LANGUAGE_ROW_SIZE
+        );
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup(languageColumn);
 
         messageBuilder.replyMarkup(markup);
 
@@ -73,8 +77,14 @@ public class LanguageSessionState implements SessionState {
 
     private SendMessage listen(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.SEND);
+        List<LanguageDto> availableLanguages = getLanguagesSafely();
 
-        LanguageDto language = languages.stream()
+        if (availableLanguages.isEmpty()) {
+            sessionDto.setBotState(BotState.LISTEN);
+            return null;
+        }
+
+        LanguageDto language = availableLanguages.stream()
                 .filter(lang -> lang.name().equals(sessionDto.getText()))
                 .findFirst()
                 .orElse(null);
@@ -83,19 +93,37 @@ public class LanguageSessionState implements SessionState {
             return null;
         }
 
-        sessionDto.setLanguage(language.code());
+        sessionDto.setLangCode(language.code());
 
-        QuestionDto question = GroupUtil.getSpecialQuestion(sessionDto, "question_answer");
+        String questionText = uiMessageService.getUiMessageText(
+                UiMessage.QUESTION_LISTEN,
+                language.code()
+        );
 
         return SendMessage
                 .builder()
                 .chatId(sessionDto.getChatId())
-                .text(question.getText())
+                .text(questionText)
                 .build();
     }
 
     @Override
     public MessageState getState() {
         return MessageState.LANGUAGE;
+    }
+
+    private List<LanguageDto> getLanguagesSafely() {
+        if (!languages.isEmpty()) {
+            return languages;
+        }
+
+        try {
+            languages = languageService.getLanguages();
+        } catch (RuntimeException ex) {
+            log.warn("Failed to load languages from core service", ex);
+            languages = Collections.emptyList();
+        }
+
+        return languages;
     }
 }
