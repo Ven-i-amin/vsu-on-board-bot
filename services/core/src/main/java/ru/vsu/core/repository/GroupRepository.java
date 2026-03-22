@@ -1,9 +1,137 @@
 package ru.vsu.core.repository;
 
+import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import ru.vsu.core.model.dto.GroupNodeDto;
 import ru.vsu.core.model.entity.Group;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface GroupRepository extends MongoRepository<Group, String> {
-    java.util.List<Group> findByParentId(String parentId);
-    java.util.List<Group> findByParentIdIn(java.util.Collection<String> parentIds);
+    List<Group> findByParentId(String parentId);
+    List<Group> findByParentIdIn(java.util.Collection<String> parentIds);
+
+    Optional<Group> findByName(String name);
+
+    @Aggregation(pipeline = {
+            "{ $match: { _id: ?0 } }",
+            """
+            { $graphLookup: {
+                from: 'groups',
+                startWith: '$_id',
+                connectFromField: '_id',
+                connectToField: 'parentId',
+                as: 'innerGroups',
+                maxDepth: ?1,
+                depthField: 'level'
+            } }
+            """,
+            """
+            { $addFields: {
+                allGroups: { $concatArrays: [["$$ROOT"], "$innerGroups"] }
+            } }
+            """,
+            "{ $unwind: '$allGroups' }",
+            "{ $replaceRoot: { newRoot: '$allGroups' } }",
+            """
+            { $addFields: {
+                level: { $ifNull: ['$level', 0] }
+            } }
+            """,
+            """
+            { $lookup: {
+                from: 'questions',
+                localField: '_id',
+                foreignField: 'groupId',
+                as: 'questions'
+            } }
+            """,
+            """
+            { $project: {
+                _id: 0,
+                groupId: '$_id',
+                name: 1,
+                title: 1,
+                parentId: 1,
+                level: 1,
+                questions: {
+                    $map: {
+                        input: '$questions',
+                        as: 'question',
+                        in: {
+                            questionId: '$$question._id',
+                            name: '$$question.name',
+                            parent: '$$question.groupId',
+                            title: '$$question.title',
+                            text: '$$question.text'
+                        }
+                    }
+                }
+            } }
+            """,
+            "{ $sort: { level: 1, parentId: 1, name: 1 } }"
+    })
+    List<GroupNodeDto> findTreeNodeByGroupId(String groupId, int depth);
+
+    @Aggregation(pipeline = {
+            "{ $match: { name: ?0 } }",
+            """
+            { $graphLookup: {
+                from: 'groups',
+                startWith: '$_id',
+                connectFromField: '_id',
+                connectToField: 'parentId',
+                as: 'innerGroups',
+                maxDepth: ?1,
+                depthField: 'level'
+            } }
+            """,
+            """
+            { $addFields: {
+                allGroups: { $concatArrays: [["$$ROOT"], "$innerGroups"] }
+            } }
+            """,
+            "{ $unwind: '$allGroups' }",
+            "{ $replaceRoot: { newRoot: '$allGroups' } }",
+            """
+            { $addFields: {
+                level: { $ifNull: ['$level', 0] }
+            } }
+            """,
+            """
+            { $lookup: {
+                from: 'questions',
+                localField: '_id',
+                foreignField: 'groupId',
+                as: 'questions'
+            } }
+            """,
+            """
+            { $project: {
+                _id: 0,
+                groupId: '$_id',
+                name: 1,
+                title: 1,
+                parentId: 1,
+                level: 1,
+                questions: {
+                    $map: {
+                        input: '$questions',
+                        as: 'question',
+                        in: {
+                            questionId: '$$question._id',
+                            name: '$$question.name',
+                            parent: '$$question.groupId',
+                            title: '$$question.title',
+                            text: '$$question.text'
+                        }
+                    }
+                }
+            } }
+            """,
+            "{ $sort: { level: 1, parentId: 1, name: 1 } }"
+    })
+    List<GroupNodeDto> findTreeByName(String name, int depth);
+
 }

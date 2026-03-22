@@ -3,13 +3,15 @@ package ru.vsu.core.model.dto;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Map;
 
 @Builder
-public record GroupLocalizedDto(
+public record GroupTreeDto(
         String groupId,
-        String title,
-        GroupLocalizedDto parentId,
-        List<GroupLocalizedDto> innerGroups,
-        List<QuestionLocalizedDto> questions
+        String name,
+        Map<String, String> title,
+        String parentId,
+        List<GroupTreeDto> innerGroups,
+        List<QuestionDto> questions
 ) {
 }

@@ -7,5 +7,5 @@ import lombok.Data;
 @Builder
 public class UserDto {
     private Long chatId;
-    private String languageCode;
+    private String langCode;
 }

@@ -1,7 +1,9 @@
 package ru.vsu.core.controller;
 
 import org.springframework.stereotype.Component;
-import ru.vsu.core.model.dto.GroupLocalizedDto;
+import ru.vsu.core.model.dto.GroupDto;
+import ru.vsu.core.model.dto.GroupTreeDto;
+import ru.vsu.core.model.dto.QuestionDto;
 import ru.vsu.core.model.dto.QuestionLocalizedDto;
 import ru.vsu.core.model.response.GroupResponseDto;
 import ru.vsu.core.model.response.LanguageResponseDto;
@@ -9,17 +11,18 @@ import ru.vsu.core.model.response.QuestionResponseDto;
 import ru.vsu.core.model.response.UserResponseDto;
 
 import java.util.Collections;
+import java.util.Map;
 
 @Component
 public class ResponseMapper {
-    public GroupResponseDto toResponse(GroupLocalizedDto group) {
+    public GroupResponseDto toResponse(GroupTreeDto group) {
         if (group == null) {
             return null;
         }
         return new GroupResponseDto(
                 group.groupId(),
-                group.title(),
-                group.parent() == null ? null : group.parent().groupId(),
+                localize(group.title()),
+                group.parentId(),
                 group.innerGroups() == null ? Collections.emptyList() : group.innerGroups().stream()
                         .map(this::toShallowResponse)
                         .toList(),
@@ -29,16 +32,42 @@ public class ResponseMapper {
         );
     }
 
-    public GroupResponseDto toShallowResponse(GroupLocalizedDto group) {
+    public GroupResponseDto toShallowResponse(GroupTreeDto group) {
         if (group == null) {
             return null;
         }
         return new GroupResponseDto(
                 group.groupId(),
-                group.title(),
-                group.parent() == null ? null : group.parent().groupId(),
+                localize(group.title()),
+                group.parentId(),
                 Collections.emptyList(),
                 Collections.emptyList()
+        );
+    }
+
+    public GroupResponseDto toShallowResponse(GroupDto group) {
+        if (group == null) {
+            return null;
+        }
+        return new GroupResponseDto(
+                group.groupId(),
+                localize(group.title()),
+                group.parentId(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+    }
+
+    public QuestionResponseDto toResponse(QuestionDto question) {
+        if (question == null) {
+            return null;
+        }
+        return new QuestionResponseDto(
+                question.getQuestionId(),
+                question.getName(),
+                null,
+                localize(question.getTitle()),
+                localize(question.getText())
         );
     }
 
@@ -60,6 +89,13 @@ public class ResponseMapper {
     }
 
     public UserResponseDto toResponse(ru.vsu.core.model.dto.UserDto user) {
-        return new UserResponseDto(user.getChatId(), user.getLanguageCode());
+        return new UserResponseDto(user.getChatId(), user.getLangCode());
+    }
+
+    private String localize(Map<String, String> values) {
+        if (values == null || values.isEmpty()) {
+            return null;
+        }
+        return values.getOrDefault("ru", values.values().iterator().next());
     }
 }

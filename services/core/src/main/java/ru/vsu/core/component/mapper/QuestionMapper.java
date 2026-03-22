@@ -3,9 +3,10 @@ package ru.vsu.core.component.mapper;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 import ru.vsu.core.model.dto.QuestionDto;
 import ru.vsu.core.model.dto.QuestionLocalizedDto;
-import ru.vsu.core.model.dto.GroupLocalizedDto;
+import ru.vsu.core.model.dto.GroupTreeDto;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.entity.Question;
 
@@ -14,6 +15,8 @@ import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public interface QuestionMapper {
+    QuestionMapper INSTANCE = Mappers.getMapper(QuestionMapper.class);
+
     QuestionDto toDto(Question question);
 
     List<QuestionDto> toDtoList(List<Question> questions);
@@ -33,7 +36,7 @@ public interface QuestionMapper {
         return QuestionLocalizedDto.builder()
                 .questionId(question.getQuestionId())
                 .name(question.getName())
-                .parent(toShallowLocalizedGroup(groupsById.get(question.getParent()), languageCode))
+                .parent(toShallowLocalizedGroup(groupsById.get(question.getGroupId()), languageCode))
                 .title(localize(question.getTitle(), languageCode))
                 .text(localize(question.getText(), languageCode))
                 .build();
@@ -50,13 +53,13 @@ public interface QuestionMapper {
     }
 
     @Named("toShallowLocalizedGroup")
-    default GroupLocalizedDto toShallowLocalizedGroup(Group group, @Context String languageCode) {
+    default GroupTreeDto toShallowLocalizedGroup(Group group, @Context String languageCode) {
         if (group == null) {
             return null;
         }
-        return GroupLocalizedDto.builder()
+        return GroupTreeDto.builder()
                 .groupId(group.getGroupId())
-                .title(localize(group.getTitle(), languageCode))
+                .title(group.getTitle())
                 .build();
     }
 

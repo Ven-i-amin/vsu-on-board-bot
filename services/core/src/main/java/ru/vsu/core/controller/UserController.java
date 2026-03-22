@@ -22,7 +22,7 @@ public class UserController {
     public UserResponseDto addUser(@RequestBody UserResponseDto user) {
         UserDto savedUser = userService.save(UserDto.builder()
                 .chatId(user.chatId())
-                .languageCode(user.language())
+                .langCode(user.language())
                 .build());
         return responseMapper.toResponse(savedUser);
     }
