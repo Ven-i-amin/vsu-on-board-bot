@@ -8,9 +8,8 @@ import java.util.Map;
 @Builder
 public record GroupDto(
         String groupId,
+        String name,
         Map<String, String> title,
-        String parentId,
-        List<String> innerGroups,
-        List<String> questions
+        String parentId
 ) {
 }

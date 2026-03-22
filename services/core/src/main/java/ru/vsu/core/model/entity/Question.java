@@ -13,12 +13,12 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document
+@Document("questions")
 public class Question {
     @Id
     private String questionId;
     private String name;
-    private String parent;
+    private String groupId;
     private Map<String, String> title;
     private Map<String, String> text;
 }

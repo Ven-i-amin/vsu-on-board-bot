@@ -5,17 +5,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.vsu.core.model.response.GroupResponseDto;
-import ru.vsu.core.service.LocalizedGroupService;
+import ru.vsu.core.service.GroupService;
 
 import java.util.List;
-
-import static ru.vsu.core.service.impl.LocalizedGroupServiceImpl.DEFAULT_LANGUAGE_CODE;
 
 @RestController
 @RequestMapping("/group")
 @AllArgsConstructor
 public class GroupController {
-    private final LocalizedGroupService localizedGroupService;
+    private static final String DEFAULT_LANGUAGE_CODE = "ru";
+    private static final String START_GROUP_NAME = "start";
+
+    private final GroupService groupService;
     private final ResponseMapper responseMapper;
 
     @GetMapping("/{groupId}")
@@ -24,7 +25,7 @@ public class GroupController {
             @RequestParam("lang") String language,
             @RequestParam(value = "depth", defaultValue = "0") Integer depth
     ) {
-        GroupResponseDto group = responseMapper.toResponse(localizedGroupService.findById(groupId, language, depth));
+        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeById(groupId, depth));
         if (group == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -36,8 +37,8 @@ public class GroupController {
             @PathVariable String groupId,
             @RequestParam("lang") String language
     ) {
-        return localizedGroupService.findInnerByParentId(groupId, language).stream()
-                .map(responseMapper::toResponse)
+        return groupService.findByParentId(groupId).stream()
+                .map(responseMapper::toShallowResponse)
                 .toList();
     }
 
@@ -46,15 +47,15 @@ public class GroupController {
             @RequestBody List<String> groupIds,
             @RequestParam("lang") String language
     ) {
-        return localizedGroupService.findByParentIds(groupIds, language).stream()
-                .map(responseMapper::toResponse)
+        return groupService.findByParentIds(groupIds).stream()
+                .map(responseMapper::toShallowResponse)
                 .toList();
     }
 
     @GetMapping("/start")
     public GroupResponseDto getStartGroup(@RequestParam(value = "lang", required = false) String language) {
         String resolvedLanguage = language == null || language.isBlank() ? DEFAULT_LANGUAGE_CODE : language;
-        GroupResponseDto group = responseMapper.toResponse(localizedGroupService.findStartGroup(resolvedLanguage, 3));
+        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(START_GROUP_NAME, 3));
         if (group == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }

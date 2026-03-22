@@ -1,9 +1,9 @@
-package ru.vsu.core.model.response;
+package ru.vsu.core.model.dto;
 
-public record LocalizedQuestion(
+public record LocalizedQuestionNodeDto(
         String questionId,
         String name,
-        String groupId,
+        String parent,
         String title,
         String text
 ) {
