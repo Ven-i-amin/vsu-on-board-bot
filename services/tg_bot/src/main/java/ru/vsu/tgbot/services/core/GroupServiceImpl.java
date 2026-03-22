@@ -21,7 +21,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/{groupId}")
-                        .queryParam("lang", language)
+                        .queryParam("langСode", language)
                         .build(groupId)
                 )
                 .retrieve()
@@ -35,7 +35,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/{groupId}")
-                        .queryParam("lang", language)
+                        .queryParam("langCode", language)
                         .queryParam("depth", depth)
                         .build(groupId)
                 )
@@ -50,7 +50,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/{groupId}/inner")
-                        .queryParam("lang", language)
+                        .queryParam("langCode", language)
                         .build(thisGroupId)
                 )
                 .retrieve()
@@ -64,7 +64,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/list")
-                        .queryParam("lang", language)
+                        .queryParam("langCode", language)
                         .build()
                 )
                 .bodyValue(groupIds)
@@ -89,7 +89,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/start")
-                        .queryParam("lang", language)
+                        .queryParam("langCode", language)
                         .build()
                 )
                 .retrieve()

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
+import ru.vsu.tgbot.model.response.UiMessageResponse;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
 
@@ -25,5 +26,6 @@ public class SessionDto {
     private MessageState messageState;
     private GroupDto start;
     private List<GroupDto> groupWindow;
-    private String language;
+    private List<UiMessageResponse> uiMessages;
+    private String langCode;
 }

@@ -8,11 +8,7 @@ import java.util.List;
 public record GroupLocalizedDto(
         String groupId,
         String title,
-
-
-
-        cnj
-        GroupLocalizedDto parent,
+        GroupLocalizedDto parentId,
         List<GroupLocalizedDto> innerGroups,
         List<QuestionLocalizedDto> questions
 ) {
