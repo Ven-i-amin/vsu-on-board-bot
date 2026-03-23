@@ -2,6 +2,7 @@ package ru.vsu.tgbot.services.core;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.vsu.tgbot.components.mapper.CoreResponseMapper;
@@ -12,9 +13,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class UiMessageServiceImpl implements  UiMessageService {
-    private WebClient coreClient;
-    private CoreResponseMapper coreResponseMapper;
+public class UiMessageServiceImpl implements UiMessageService {
+    private final WebClient coreClient;
+    private final CoreResponseMapper coreResponseMapper;
 
     @Override
     public List<UiMessageDto> getUiMessages() {
@@ -22,9 +23,8 @@ public class UiMessageServiceImpl implements  UiMessageService {
                 .uri("/uiMessages")
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(UiMessageResponse.class)
-                .map(List::of)
-                .map(el -> coreResponseMapper.toUiMessageDtoList(el))
+                .bodyToMono(new ParameterizedTypeReference<List<UiMessageResponse>>() {})
+                .map(coreResponseMapper::toUiMessageDtoList)
                 .block();
     }
 }

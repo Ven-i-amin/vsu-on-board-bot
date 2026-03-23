@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class LanguageControlServiceImpl implements LanguageControlService{
+public class LanguageControlImpl implements LanguageControl {
     private final LanguageService languageService;
     private final List<LanguageDto> languageList = new ArrayList<>();
 

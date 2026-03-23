@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.UiMessageDto;
 import ru.vsu.tgbot.services.core.UiMessageService;
-import ru.vsu.tgbot.util.StateHandlerUtil;
+import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessage;
 
 import java.util.List;
@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class UiMessageControlServiceImpl implements UiMessageControlService {
+public class UiMessageControlImpl implements UiMessageControl {
     private final UiMessageService uiMessageService;
-    private final LanguageControlService languageControlService;
+    private final LanguageControl languageControl;
 
     private List<UiMessageDto> uiMessageList;
 
@@ -50,20 +50,20 @@ public class UiMessageControlServiceImpl implements UiMessageControlService {
                 .orElse(null);
 
         if (uiMessage == null) {
-            return StateHandlerUtil.NOT_FOUND_MESSAGE;
+            return MessageUtil.NOT_FOUND_MESSAGE;
         }
 
-        return uiMessage.getText().getOrDefault(langCode, StateHandlerUtil.NOT_FOUND_MESSAGE);
+        return uiMessage.getText().getOrDefault(langCode, MessageUtil.NOT_FOUND_MESSAGE);
     }
 
     private UiMessageDto getErrorMessage(String name) {
         return UiMessageDto.builder()
                 .name(name)
-                .text(languageControlService.getLanguages().stream()
+                .text(languageControl.getLanguages().stream()
                         .map(LanguageDto::code)
                         .collect(Collectors.toMap(
                                 Function.identity(),
-                                lang -> StateHandlerUtil.NOT_FOUND_MESSAGE)
+                                lang -> MessageUtil.NOT_FOUND_MESSAGE)
                         )
                 )
                 .build();
