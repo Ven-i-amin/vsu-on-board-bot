@@ -17,10 +17,12 @@ import java.util.Map;
 public interface QuestionMapper {
     QuestionMapper INSTANCE = Mappers.getMapper(QuestionMapper.class);
 
+    @org.mapstruct.Mapping(source = "groupId", target = "parent")
     QuestionDto toDto(Question question);
 
     List<QuestionDto> toDtoList(List<Question> questions);
 
+    @org.mapstruct.Mapping(source = "parent", target = "groupId")
     Question toEntity(QuestionDto questionDto);
 
     List<Question> toEntityList(List<QuestionDto> questionDtos);

@@ -27,7 +27,7 @@ public class LanguageSessionState implements SessionState {
     private final LanguageService languageService;
     private final UiMessageControl uiMessageService;
 
-    private List<LanguageDto> languages;
+    private List<LanguageDto> languages = Collections.emptyList();
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
@@ -62,7 +62,7 @@ public class LanguageSessionState implements SessionState {
         messageBuilder.text(questionText);
 
         List<InlineKeyboardRow> languageColumn = MessageUtil.getInlineButtonColumn(
-                languages.stream()
+                availableLanguages.stream()
                         .map(LanguageDto::name)
                         .toList(),
                 LANGUAGE_ROW_SIZE

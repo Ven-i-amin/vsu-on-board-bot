@@ -64,13 +64,15 @@ public class QuestionSessionState implements SessionState {
         sessionDto.setBotState(BotState.SEND);
 
         String text = sessionDto.getText();
+        String backText = uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode());
+        String startText = uiMessageService.getUiMessageText(UiMessage.START, sessionDto.getLangCode());
 
-        if (text.equals(UiMessage.BACK.getValue())) {
+        if (text.equals(backText)) {
             groupWindowService.moveBackward(sessionDto);
             return;
         }
 
-        if (text.equals(UiMessage.START.getValue())) {
+        if (text.equals(startText)) {
             groupWindowService.moveToStart(sessionDto);
         }
     }

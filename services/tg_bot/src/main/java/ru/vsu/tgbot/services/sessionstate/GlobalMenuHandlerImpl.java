@@ -40,7 +40,7 @@ public class GlobalMenuHandlerImpl implements SessionState {
 
     private SendMessage answer(SessionDto sessionDto) {
         List<KeyboardRow> keyboardRows = MessageUtil.getButtonColumn(
-                List.of(UiMessage.LANGUAGE_TITLE.getValue()),
+                List.of(uiMessageControl.getUiMessageText(UiMessage.LANGUAGE_TITLE, sessionDto.getLangCode())),
                 MAIN_LANGUAGE_ROW_SIZE
         );
 

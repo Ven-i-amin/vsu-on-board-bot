@@ -1,4 +1,4 @@
-package ru.vsu.core.controller;
+package ru.vsu.core.component.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.vsu.core.model.dto.GroupDto;
