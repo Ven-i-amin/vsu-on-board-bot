@@ -14,12 +14,13 @@ import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class GlobalMenuHandlerImpl implements SessionState {
+    public static final int MAIN_LANGUAGE_ROW_SIZE = 1;
+    public static final int MAIN_GROUP_ROW_SIZE = 2;
     private UiMessageControl uiMessageControl;
     private GroupWindowService groupWindowService;
 
@@ -40,12 +41,12 @@ public class GlobalMenuHandlerImpl implements SessionState {
     private SendMessage answer(SessionDto sessionDto) {
         List<KeyboardRow> keyboardRows = MessageUtil.getButtonColumn(
                 List.of(UiMessage.LANGUAGE_TITLE.getValue()),
-                1
+                MAIN_LANGUAGE_ROW_SIZE
         );
 
         keyboardRows.addAll(
                 MessageUtil.getButtonColumn(MessageUtil.getLocalizedGroupTitles(sessionDto),
-                        2
+                        MAIN_GROUP_ROW_SIZE
                 )
         );
 
@@ -73,14 +74,5 @@ public class GlobalMenuHandlerImpl implements SessionState {
                 sessionDto,
                 MessageUtil.getGroupByText(text, sessionDto)
         );
-    }
-
-    private List<String> getTitles(SessionDto sessionDto) {
-        List<String> titles = new ArrayList<>();
-
-        titles.add(UiMessage.LANGUAGE_TITLE.getValue());
-        titles.addAll(MessageUtil.getLocalizedGroupTitles(sessionDto));
-
-        return titles;
     }
 }
