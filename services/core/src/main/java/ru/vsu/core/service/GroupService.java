@@ -21,6 +21,10 @@ public interface GroupService {
 
     List<GroupDto> findByParentIds(List<String> parentIds);
 
+    GroupDto findRoot();
+
+    GroupDto createRootIfMissing();
+
     GroupTreeDto findTreeById(String groupId, int depth);
 
     GroupTreeDto findTreeByName(String groupName, int depth);
