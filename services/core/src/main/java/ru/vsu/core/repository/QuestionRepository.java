@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface QuestionRepository extends MongoRepository<Question, String> {
-    List<Question> findByParent(String groupId);
-    Optional<Question> findByParentAndName(String groupId, String name);
+    List<Question> findByGroupId(String groupId);
+    Optional<Question> findByGroupIdAndName(String groupId, String name);
 }

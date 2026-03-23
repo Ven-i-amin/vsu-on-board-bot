@@ -20,7 +20,8 @@ import static ru.vsu.core.util.GroupTreeUtil.*;
 @AllArgsConstructor
 public class GroupServiceImpl implements GroupService {
     private static final String ROOT_GROUP_NAME = "main-menu";
-    private static final String ROOT_TITLE_EN = "Main menu";
+    private static final String DEFAULT_LANGUAGE_CODE = "ru";
+    private static final String ROOT_TITLE_RU = "Главное меню";
 
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
@@ -141,11 +142,10 @@ public class GroupServiceImpl implements GroupService {
 
         languageService.findAll().forEach(language -> title.put(
                 language.code(),
-                ROOT_TITLE_EN
+                ROOT_TITLE_RU
         ));
 
-        title.putIfAbsent("ru", ROOT_TITLE_EN);
-        title.putIfAbsent("en", ROOT_TITLE_EN);
+        title.putIfAbsent(DEFAULT_LANGUAGE_CODE, ROOT_TITLE_RU);
         return title;
     }
 }

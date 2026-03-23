@@ -92,7 +92,8 @@ public class GroupSessionState implements SessionState {
             return;
         }
 
-        if (text.equals(UiMessage.BACK.getValue())) {
+        String backText = uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode());
+        if (text.equals(backText)) {
             groupWindowService.moveBackward(sessionDto);
             return;
         }

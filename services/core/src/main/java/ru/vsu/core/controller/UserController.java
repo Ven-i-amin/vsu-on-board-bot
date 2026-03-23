@@ -2,6 +2,7 @@ package ru.vsu.core.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.vsu.core.component.mapper.ResponseMapper;
 import ru.vsu.core.model.dto.UserDto;
 import ru.vsu.core.model.response.UserResponseDto;
 import ru.vsu.core.service.UserService;
