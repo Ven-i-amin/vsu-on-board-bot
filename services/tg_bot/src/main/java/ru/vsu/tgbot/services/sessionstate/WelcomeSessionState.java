@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.UiMessageControlService;
+import ru.vsu.tgbot.services.business.UiMessageControl;
 import ru.vsu.tgbot.services.core.GroupService;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
@@ -16,7 +16,7 @@ import ru.vsu.tgbot.util.UiMessage;
 @AllArgsConstructor
 public class WelcomeSessionState implements SessionState {
     private final GroupService groupService;
-    private final UiMessageControlService uiMessageService;
+    private final UiMessageControl uiMessageService;
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
@@ -39,6 +39,7 @@ public class WelcomeSessionState implements SessionState {
 
         sessionDto.setStart(startGroup);
         sessionDto.getGroupWindow().add(startGroup);
+        sessionDto.setMessageState(MessageState.MAIN_MENU);
 
         sender.send(SendMessage
                 .builder()

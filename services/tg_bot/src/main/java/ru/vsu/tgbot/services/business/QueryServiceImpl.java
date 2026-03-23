@@ -10,8 +10,9 @@ import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.model.dto.UserDto;
 import ru.vsu.tgbot.services.core.UserService;
 import ru.vsu.tgbot.services.session.SessionService;
-import ru.vsu.tgbot.util.MessageState;
+import ru.vsu.tgbot.services.sessionstate.GlobalMenuHandler;
 import ru.vsu.tgbot.util.BotState;
+import ru.vsu.tgbot.util.MessageState;
 
 @Service
 @Slf4j
@@ -20,6 +21,8 @@ public class QueryServiceImpl implements QueryService {
     private SessionService sessionService;
     private UserService userService;
     private SessionStateRegistry stateHandler;
+    private GlobalMenuHandler globalMenuHandler;
+
     private BotMessageSender botMessageSender;
 
     @Override
@@ -48,6 +51,7 @@ public class QueryServiceImpl implements QueryService {
                         .messageState(MessageState.WELCOME)
                         .langCode(language)
                         .build();
+
             }
 
             sessionDto.setText(text);

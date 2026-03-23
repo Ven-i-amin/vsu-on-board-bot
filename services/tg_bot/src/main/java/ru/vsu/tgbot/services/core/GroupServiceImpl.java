@@ -21,7 +21,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/{groupId}")
-                        .queryParam("langСode", language)
+                        .queryParam("lang", language)
                         .build(groupId)
                 )
                 .retrieve()
@@ -35,7 +35,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/{groupId}")
-                        .queryParam("langCode", language)
+                        .queryParam("lang", language)
                         .queryParam("depth", depth)
                         .build(groupId)
                 )
@@ -50,7 +50,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/{groupId}/inner")
-                        .queryParam("langCode", language)
+                        .queryParam("lang", language)
                         .build(thisGroupId)
                 )
                 .retrieve()
@@ -59,12 +59,12 @@ public class GroupServiceImpl implements GroupService {
                 .block();
     }
 
-     @Override
-     public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupIds, String language) {
+    @Override
+    public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupIds, String language) {
         return coreClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/list")
-                        .queryParam("langCode", language)
+                        .queryParam("lang", language)
                         .build()
                 )
                 .bodyValue(groupIds)
@@ -72,7 +72,7 @@ public class GroupServiceImpl implements GroupService {
                 .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
                 .map(coreResponseMapper::toGroupDtoList)
                 .block();
-     }
+    }
 
     @Override
     public GroupDto getStartGroup() {
@@ -89,7 +89,7 @@ public class GroupServiceImpl implements GroupService {
         return coreClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/group/start")
-                        .queryParam("langCode", language)
+                        .queryParam("lang", language)
                         .build()
                 )
                 .retrieve()
