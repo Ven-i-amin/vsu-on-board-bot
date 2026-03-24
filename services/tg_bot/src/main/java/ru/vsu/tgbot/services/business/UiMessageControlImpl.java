@@ -2,6 +2,7 @@ package ru.vsu.tgbot.services.business;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.UiMessageDto;
@@ -10,6 +11,7 @@ import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -23,7 +25,19 @@ public class UiMessageControlImpl implements UiMessageControl {
 
     @PostConstruct
     public void init() {
-        uiMessageList = uiMessageService.getUiMessages();
+        try {
+            uiMessageList = uiMessageService.getUiMessages();
+        } catch (RuntimeException ignored) {
+            uiMessageList = List.of(
+                    stub("back", "Назад"),
+                    stub("start", "В начало"),
+                    stub("welcome", "Добро пожаловать!"),
+                    stub("main-menu", "Главное меню"),
+                    stub("language_title", "Выбрать язык"),
+                    stub("question_listen", "Выберите раздел в главном меню."),
+                    stub("question_answer", "Выберите язык.")
+            );
+        }
     }
 
     @Override
@@ -56,6 +70,20 @@ public class UiMessageControlImpl implements UiMessageControl {
         return uiMessage.getText().getOrDefault(langCode, MessageUtil.NOT_FOUND_MESSAGE);
     }
 
+    @Override
+    public Pair<String, String> getUiMessageNameAndText(UiMessage name, String langCode) {
+        UiMessageDto uiMessage = uiMessageList.stream()
+                .filter(ui -> ui.getName().equals(name.getValue()))
+                .findFirst()
+                .orElse(null);
+
+        if (uiMessage == null) {
+            return Pair.of(name.getValue(), MessageUtil.NOT_FOUND_MESSAGE);
+        }
+
+        return Pair.of(name.getValue(), uiMessage.getText().getOrDefault(langCode, MessageUtil.NOT_FOUND_MESSAGE));
+    }
+
     private UiMessageDto getErrorMessage(String name) {
         return UiMessageDto.builder()
                 .name(name)
@@ -66,6 +94,13 @@ public class UiMessageControlImpl implements UiMessageControl {
                                 lang -> MessageUtil.NOT_FOUND_MESSAGE)
                         )
                 )
+                .build();
+    }
+
+    private UiMessageDto stub(String name, String text) {
+        return UiMessageDto.builder()
+                .name(name)
+                .text(Map.of("ru", text))
                 .build();
     }
 }

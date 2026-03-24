@@ -28,7 +28,7 @@ public class SessionServiceImpl implements SessionService {
     @Override
     public SessionDto getSession(Long chatId) {
         return sessionRepository.findById(chatId)
-                .map(session -> SessionMapper.INSTANCE.sessionToSessionDto(session, null))
+                .map(SessionMapper.INSTANCE::sessionToSessionDto)
                 .orElse(null);
     }
 

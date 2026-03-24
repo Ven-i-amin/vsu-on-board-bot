@@ -1,114 +1,36 @@
 package ru.vsu.core.component.mapper;
 
-import org.springframework.stereotype.Component;
-import ru.vsu.core.model.dto.GroupDto;
-import ru.vsu.core.model.dto.GroupTreeDto;
-import ru.vsu.core.model.dto.QuestionDto;
-import ru.vsu.core.model.dto.QuestionLocalizedDto;
-import ru.vsu.core.model.dto.UiMessageDto;
-import ru.vsu.core.model.response.GroupResponseDto;
-import ru.vsu.core.model.response.LanguageResponseDto;
-import ru.vsu.core.model.response.QuestionResponseDto;
-import ru.vsu.core.model.response.UiMessageResponseDto;
-import ru.vsu.core.model.response.UserResponseDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+import ru.vsu.contract.model.response.GroupResponseDto;
+import ru.vsu.contract.model.response.LanguageResponseDto;
+import ru.vsu.contract.model.response.UiMessageResponseDto;
+import ru.vsu.contract.model.response.UserResponseDto;
+import ru.vsu.core.model.dto.*;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
-@Component
-public class ResponseMapper {
-    public GroupResponseDto toResponse(GroupTreeDto group) {
-        if (group == null) {
-            return null;
-        }
-        return new GroupResponseDto(
-                group.groupId(),
-                localize(group.title()),
-                group.parentId(),
-                group.innerGroups() == null ? Collections.emptyList() : group.innerGroups().stream()
-                        .map(this::toShallowResponse)
-                        .toList(),
-                group.questions() == null ? Collections.emptyList() : group.questions().stream()
-                        .map(this::toResponse)
-                        .toList()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface ResponseMapper {
+    ResponseMapper INSTANCE = Mappers.getMapper(ResponseMapper.class);
 
-    public GroupResponseDto toShallowResponse(GroupTreeDto group) {
-        if (group == null) {
-            return null;
-        }
-        return new GroupResponseDto(
-                group.groupId(),
-                localize(group.title()),
-                group.parentId(),
-                Collections.emptyList(),
-                Collections.emptyList()
-        );
-    }
+    @Mapping(target = "innerGroups", expression = "java( toResponse(group.innerGroups()) )")
+    @Mapping(target = "questions", expression = "java(group.questions() == null ? java.util.List.of() : group.questions().stream().map(this::toResponse).toList())")
+    GroupResponseDto toResponse(GroupTreeDto group);
 
-    public GroupResponseDto toShallowResponse(GroupDto group) {
-        if (group == null) {
-            return null;
-        }
-        return new GroupResponseDto(
-                group.groupId(),
-                localize(group.title()),
-                group.parentId(),
-                Collections.emptyList(),
-                Collections.emptyList()
-        );
-    }
+    List<GroupResponseDto> toResponse(List<GroupTreeDto> groups);
 
-    public QuestionResponseDto toResponse(QuestionDto question) {
-        if (question == null) {
-            return null;
-        }
-        return new QuestionResponseDto(
-                question.getQuestionId(),
-                question.getName(),
-                null,
-                localize(question.getTitle()),
-                localize(question.getText())
-        );
-    }
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "innerGroups", ignore = true)
+    @Mapping(target = "questions", ignore = true)
+    GroupResponseDto toShallowResponse(GroupDto group);
 
-    public QuestionResponseDto toResponse(QuestionLocalizedDto question) {
-        if (question == null) {
-            return null;
-        }
-        return new QuestionResponseDto(
-                question.getQuestionId(),
-                question.getName(),
-                toShallowResponse(question.getParent()),
-                question.getTitle(),
-                question.getText()
-        );
-    }
+    ru.vsu.contract.model.response.QuestionResponseDto toResponse(QuestionDto question);
 
-    public LanguageResponseDto toResponse(ru.vsu.core.model.dto.LanguageDto language) {
-        return new LanguageResponseDto(language.code(), language.name());
-    }
+    LanguageResponseDto toResponse(LanguageDto language);
 
-    public UserResponseDto toResponse(ru.vsu.core.model.dto.UserDto user) {
-        return new UserResponseDto(user.getChatId(), user.getLangCode());
-    }
+    UserResponseDto toResponse(UserDto user);
 
-    public UiMessageResponseDto toResponse(UiMessageDto uiMessage) {
-        if (uiMessage == null) {
-            return null;
-        }
-        return new UiMessageResponseDto(
-                uiMessage.id(),
-                uiMessage.name(),
-                uiMessage.text()
-        );
-    }
-
-    private String localize(Map<String, String> values) {
-        if (values == null || values.isEmpty()) {
-            return null;
-        }
-        return values.getOrDefault("ru", values.values().iterator().next());
-    }
+    UiMessageResponseDto toResponse(UiMessageDto uiMessage);
 }

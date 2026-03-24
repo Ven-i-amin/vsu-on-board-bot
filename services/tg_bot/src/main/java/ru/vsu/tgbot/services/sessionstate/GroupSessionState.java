@@ -1,6 +1,7 @@
 package ru.vsu.tgbot.services.sessionstate;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -11,15 +12,14 @@ import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
 import ru.vsu.tgbot.services.business.UiMessageControl;
-import ru.vsu.tgbot.util.MessageUtil;
-import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
+import ru.vsu.tgbot.util.MessageState;
+import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -31,7 +31,11 @@ public class GroupSessionState implements SessionState {
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
         if (sessionDto.getBotState() == BotState.SEND) {
-            sender.send(answer(sessionDto));
+            SendMessage answer = answer(sessionDto);
+
+            if (answer != null) {
+                sender.send(answer(sessionDto));
+            }
         } else {
             listen(sessionDto);
         }
@@ -43,10 +47,17 @@ public class GroupSessionState implements SessionState {
     }
 
     private SendMessage answer(SessionDto sessionDto) {
+        if (sessionDto.getGroupWindow().isEmpty()) {
+            sessionDto.setMessageState(MessageState.MAIN_MENU);
+
+            return null;
+        }
+
         sessionDto.setBotState(BotState.LISTEN);
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder();
 
         builder.chatId(sessionDto.getChatId());
+        builder.text(sessionDto.getGroupWindow().getLast().getTitle().get(sessionDto.getLangCode()));
 
         List<InlineKeyboardRow> column = MessageUtil.getInlineButtonColumn(
                 getAllTitles(sessionDto),
@@ -61,12 +72,21 @@ public class GroupSessionState implements SessionState {
     private void listen(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.SEND);
 
-        String text = sessionDto.getText();
+        String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
+        if (text == null) {
+            sessionDto.setBotState(BotState.LISTEN);
+            return;
+        }
+
+        if (sessionDto.getGroupWindow().isEmpty()) {
+            sessionDto.setMessageState(MessageState.MAIN_MENU);
+            return;
+        }
 
         GroupDto currentGroup = MessageUtil.getCurrentGroup(sessionDto.getGroupWindow());
 
-        GroupDto selectedGroup = currentGroup.innerGroups().stream()
-                .filter(gr -> gr.title().get(sessionDto.getLangCode()).equals(text))
+        GroupDto selectedGroup = currentGroup.getInnerGroups().stream()
+                .filter(gr -> gr.getName().equals(text))
                 .findFirst()
                 .orElse(null);
 
@@ -75,8 +95,8 @@ public class GroupSessionState implements SessionState {
             return;
         }
 
-        QuestionDto selectedQuestion = currentGroup.questions().stream()
-                .filter(question -> question.getTitle().get(sessionDto.getLangCode()).equals(text))
+        QuestionDto selectedQuestion = currentGroup.getQuestions().stream()
+                .filter(question -> question.getName().equals(text))
                 .findFirst()
                 .orElse(null);
 
@@ -84,7 +104,8 @@ public class GroupSessionState implements SessionState {
             GroupDto questionGroup = GroupDto.builder()
                     .title(Map.of())
                     .questions(List.of(selectedQuestion))
-                    .parentId(selectedQuestion.getParent().parentId())
+                    .innerGroups(new ArrayList<>())
+                    .parentName(currentGroup.getParentName())
                     .build();
 
             groupWindowService.moveForward(sessionDto, questionGroup);
@@ -92,39 +113,31 @@ public class GroupSessionState implements SessionState {
             return;
         }
 
-        String backText = uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode());
-        if (text.equals(backText)) {
+        if (text.equals(UiMessage.BACK.getValue())) {
             groupWindowService.moveBackward(sessionDto);
+
+            if (sessionDto.getGroupWindow().isEmpty()) {
+                sessionDto.setMessageState(MessageState.MAIN_MENU);
+                return;
+            }
+
             return;
         }
 
         sessionDto.setBotState(BotState.LISTEN);
     }
 
-    private List<String> getAllTitles(SessionDto sessionDto) {
+    private List<Pair<String, String>> getAllTitles(SessionDto sessionDto) {
         GroupDto currentGroup = sessionDto.getGroupWindow().getLast();
-        List<String> titles = new ArrayList<>();
+        List<Pair<String, String>> nameAndText = new ArrayList<>();
 
-        titles.addAll(
-                currentGroup.innerGroups().stream()
-                        .map(GroupDto::title)
-                        .map(el -> el.get(sessionDto.getLangCode()))
-                        .filter(Objects::nonNull)
-                        .toList()
-        );
+        nameAndText.addAll(MessageUtil.getLocalizedGroupNameAndTitles(currentGroup, sessionDto));
+        nameAndText.addAll(MessageUtil.getLocalizedQuestionNameAndTitles(currentGroup, sessionDto));
 
-        titles.addAll(
-                currentGroup.questions().stream()
-                        .map(QuestionDto::getTitle)
-                        .map(el -> el.get(sessionDto.getLangCode()))
-                        .filter(Objects::nonNull)
-                        .toList()
-        );
+        Pair<String, String> back = uiMessageService.getUiMessageNameAndText(UiMessage.BACK, sessionDto.getLangCode());
 
-        String backText = uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode());
+        nameAndText.add(back);
 
-        titles.add(backText);
-
-        return titles;
+        return nameAndText;
     }
 }

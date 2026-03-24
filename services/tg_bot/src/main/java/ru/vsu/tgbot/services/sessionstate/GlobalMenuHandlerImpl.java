@@ -39,13 +39,19 @@ public class GlobalMenuHandlerImpl implements SessionState {
     }
 
     private SendMessage answer(SessionDto sessionDto) {
+        sessionDto.setBotState(BotState.LISTEN);
+
         List<KeyboardRow> keyboardRows = MessageUtil.getButtonColumn(
-                List.of(uiMessageControl.getUiMessageText(UiMessage.LANGUAGE_TITLE, sessionDto.getLangCode())),
+                List.of(uiMessageControl.getUiMessageText(
+                        UiMessage.LANGUAGE_TITLE,
+                        sessionDto.getLangCode())
+                ),
                 MAIN_LANGUAGE_ROW_SIZE
         );
 
         keyboardRows.addAll(
-                MessageUtil.getButtonColumn(MessageUtil.getLocalizedGroupTitles(sessionDto),
+                MessageUtil.getButtonColumn(
+                        MessageUtil.getLocalizedGroupTitles(sessionDto),
                         MAIN_GROUP_ROW_SIZE
                 )
         );
@@ -61,18 +67,26 @@ public class GlobalMenuHandlerImpl implements SessionState {
 
     private void listen(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.SEND);
-        String text = sessionDto.getText();
+
+        String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
+        if (text == null) {
+            sessionDto.setBotState(BotState.LISTEN);
+            return;
+        }
 
         if (text.equals(uiMessageControl.getUiMessageText(UiMessage.LANGUAGE_TITLE, sessionDto.getLangCode()))) {
             sessionDto.setMessageState(MessageState.LANGUAGE);
             return;
         }
 
+        var selectedGroup = MessageUtil.getGroupByText(text, sessionDto);
+        if (selectedGroup == null) {
+            sessionDto.setBotState(BotState.LISTEN);
+            return;
+        }
+
         sessionDto.setMessageState(MessageState.GROUP);
         groupWindowService.moveToStart(sessionDto);
-        groupWindowService.moveForward(
-                sessionDto,
-                MessageUtil.getGroupByText(text, sessionDto)
-        );
+        groupWindowService.moveForward(sessionDto, selectedGroup);
     }
 }

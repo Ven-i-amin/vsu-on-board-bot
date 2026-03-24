@@ -6,6 +6,7 @@ import ru.vsu.core.component.mapper.GroupMapper;
 import ru.vsu.core.model.dto.GroupDto;
 import ru.vsu.core.model.dto.GroupNodeDto;
 import ru.vsu.core.model.dto.GroupTreeDto;
+import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.repository.GroupRepository;
 import ru.vsu.core.service.GroupService;
 import ru.vsu.core.service.LanguageService;
@@ -48,7 +49,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public GroupDto save(GroupDto group) {
-        if (group.parentId() == null) {
+        if (group.parentName() == null) {
             GroupDto existingRoot = findRoot();
             boolean isAnotherRoot = existingRoot != null
                     && (group.groupId() == null || !existingRoot.groupId().equals(group.groupId()));
@@ -63,7 +64,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void deleteById(String groupId) {
         GroupDto group = findById(groupId);
-        if (group != null && group.parentId() == null) {
+        if (group != null && group.parentName() == null) {
             throw new IllegalStateException("Root group cannot be deleted");
         }
 
@@ -71,20 +72,37 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<GroupDto> findByParentId(String parentId) {
-        return groupMapper.toDtoList(groupRepository.findByParentId(parentId));
+    public List<GroupDto> findByParentName(String parentName) {
+        return groupMapper.toDtoList(groupRepository.findByParentName(parentName));
     }
 
     @Override
-    public List<GroupDto> findByParentIds(List<String> parentIds) {
-        return groupMapper.toDtoList(groupRepository.findByParentIdIn(parentIds));
+    public List<GroupDto> findByParentNames(List<String> parentNames) {
+        return groupMapper.toDtoList(groupRepository.findByParentNameIn(parentNames));
     }
 
     @Override
     public GroupDto findRoot() {
-        return groupRepository.findByParentIdIsNull()
-                .map(groupMapper::toDto)
+        List<Group> roots = groupRepository.findAllByParentNameIsNull();
+        if (roots.isEmpty()) {
+            return null;
+        }
+
+        Group root = roots.stream()
+                .filter(group -> ROOT_GROUP_NAME.equals(group.getName()))
+                .findFirst()
+                .or(() -> roots.stream().findFirst())
                 .orElse(null);
+
+        return root == null ? null : groupMapper.toDto(root);
+    }
+
+    @Override
+    public GroupTreeDto findRootGroup(int depth) {
+        GroupDto group = findRoot();
+
+        assert group != null;
+        return findTreeByName(group.name(), depth);
     }
 
     @Override
@@ -97,7 +115,7 @@ public class GroupServiceImpl implements GroupService {
         return save(GroupDto.builder()
                 .name(ROOT_GROUP_NAME)
                 .title(buildRootTitle())
-                .parentId(null)
+                .parentName(null)
                 .build());
     }
 

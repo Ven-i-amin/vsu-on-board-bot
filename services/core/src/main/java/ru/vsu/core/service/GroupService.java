@@ -17,11 +17,12 @@ public interface GroupService {
 
     void deleteById(String groupId);
 
-    List<GroupDto> findByParentId(String parentId);
+    List<GroupDto> findByParentName(String parentName);
 
-    List<GroupDto> findByParentIds(List<String> parentIds);
+    List<GroupDto> findByParentNames(List<String> parentNames);
 
     GroupDto findRoot();
+    GroupTreeDto findRootGroup(int depth);
 
     GroupDto createRootIfMissing();
 

@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GroupRepository extends MongoRepository<Group, String> {
-    Optional<Group> findByParentIdIsNull();
-    List<Group> findByParentId(String parentId);
-    List<Group> findByParentIdIn(java.util.Collection<String> parentIds);
+    Optional<Group> findFirstByParentNameIsNullOrderByNameAsc();
+    List<Group> findAllByParentNameIsNull();
+    List<Group> findByParentName(String parentName);
+    List<Group> findByParentNameIn(java.util.Collection<String> parentNames);
 
     Optional<Group> findByName(String name);
 
@@ -20,9 +21,9 @@ public interface GroupRepository extends MongoRepository<Group, String> {
             """
             { $graphLookup: {
                 from: 'groups',
-                startWith: '$_id',
-                connectFromField: '_id',
-                connectToField: 'parentId',
+                startWith: '$name',
+                connectFromField: 'name',
+                connectToField: 'parentName',
                 as: 'innerGroups',
                 maxDepth: ?1,
                 depthField: 'level'
@@ -37,14 +38,14 @@ public interface GroupRepository extends MongoRepository<Group, String> {
             "{ $replaceRoot: { newRoot: '$allGroups' } }",
             """
             { $addFields: {
-                level: { $ifNull: ['$level', 0] }
+                level: { $ifNull: ['$level', -1] }
             } }
             """,
             """
             { $lookup: {
                 from: 'questions',
-                localField: '_id',
-                foreignField: 'groupId',
+                localField: 'name',
+                foreignField: 'groupName',
                 as: 'questions'
             } }
             """,
@@ -54,7 +55,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
                 groupId: '$_id',
                 name: 1,
                 title: 1,
-                parentId: 1,
+                parentName: 1,
                 level: 1,
                 questions: {
                     $map: {
@@ -63,7 +64,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
                         in: {
                             questionId: '$$question._id',
                             name: '$$question.name',
-                            parent: '$$question.groupId',
+                            parent: '$$question.groupName',
                             title: '$$question.title',
                             text: '$$question.text'
                         }
@@ -71,7 +72,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
                 }
             } }
             """,
-            "{ $sort: { level: 1, parentId: 1, name: 1 } }"
+            "{ $sort: { level: 1, parentName: 1, name: 1 } }"
     })
     List<GroupNodeDto> findTreeNodeByGroupId(String groupId, int depth);
 
@@ -80,9 +81,9 @@ public interface GroupRepository extends MongoRepository<Group, String> {
             """
             { $graphLookup: {
                 from: 'groups',
-                startWith: '$_id',
-                connectFromField: '_id',
-                connectToField: 'parentId',
+                startWith: '$name',
+                connectFromField: 'name',
+                connectToField: 'parentName',
                 as: 'innerGroups',
                 maxDepth: ?1,
                 depthField: 'level'
@@ -97,14 +98,14 @@ public interface GroupRepository extends MongoRepository<Group, String> {
             "{ $replaceRoot: { newRoot: '$allGroups' } }",
             """
             { $addFields: {
-                level: { $ifNull: ['$level', 0] }
+                level: { $ifNull: ['$level', -1] }
             } }
             """,
             """
             { $lookup: {
                 from: 'questions',
-                localField: '_id',
-                foreignField: 'groupId',
+                localField: 'name',
+                foreignField: 'groupName',
                 as: 'questions'
             } }
             """,
@@ -114,7 +115,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
                 groupId: '$_id',
                 name: 1,
                 title: 1,
-                parentId: 1,
+                parentName: 1,
                 level: 1,
                 questions: {
                     $map: {
@@ -123,7 +124,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
                         in: {
                             questionId: '$$question._id',
                             name: '$$question.name',
-                            parent: '$$question.groupId',
+                            parent: '$$question.groupName',
                             title: '$$question.title',
                             text: '$$question.text'
                         }
@@ -131,7 +132,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
                 }
             } }
             """,
-            "{ $sort: { level: 1, parentId: 1, name: 1 } }"
+            "{ $sort: { level: 1, parentName: 1, name: 1 } }"
     })
     List<GroupNodeDto> findTreeByName(String name, int depth);
 

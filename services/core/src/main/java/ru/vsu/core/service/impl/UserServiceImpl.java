@@ -33,6 +33,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto updateLangCode(Long chatId, String langCode) {
+        UserDto user = findByChatId(chatId);
+        if (user == null) {
+            user = UserDto.builder()
+                    .chatId(chatId)
+                    .langCode(langCode)
+                    .build();
+        } else {
+            user.setLangCode(langCode);
+        }
+        return save(user);
+    }
+
+    @Override
     public void deleteByChatId(Long chatId) {
         userRepository.deleteById(chatId);
     }

@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.core.component.mapper.ResponseMapper;
 import ru.vsu.core.model.dto.UiMessageDto;
-import ru.vsu.core.model.response.UiMessageResponseDto;
 import ru.vsu.core.service.UiMessageService;
 
 import java.util.List;
