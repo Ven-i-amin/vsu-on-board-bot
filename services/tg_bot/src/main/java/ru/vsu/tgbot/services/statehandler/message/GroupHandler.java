@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.services.sessionstate;
+package ru.vsu.tgbot.services.statehandler.message;
 
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Service
 @AllArgsConstructor
-public class GroupSessionState implements SessionState {
+public class GroupHandler implements MessageStateHandler {
     public static final int GROUP_ROW_SIZE = 1;
     private final GroupWindowService groupWindowService;
     private final UiMessageControl uiMessageService;
@@ -34,7 +34,7 @@ public class GroupSessionState implements SessionState {
             SendMessage answer = answer(sessionDto);
 
             if (answer != null) {
-                sender.send(answer(sessionDto));
+                sessionDto.setLastMessageId(sender.send(answer(sessionDto)).getMessageId());
             }
         } else {
             listen(sessionDto);
@@ -48,7 +48,7 @@ public class GroupSessionState implements SessionState {
 
     private SendMessage answer(SessionDto sessionDto) {
         if (sessionDto.getGroupWindow().isEmpty()) {
-            sessionDto.setMessageState(MessageState.MAIN_MENU);
+            sessionDto.setMessageState(MessageState.NOTHING);
 
             return null;
         }
@@ -70,7 +70,7 @@ public class GroupSessionState implements SessionState {
     }
 
     private void listen(SessionDto sessionDto) {
-        sessionDto.setBotState(BotState.SEND);
+        sessionDto.setBotState(BotState.DELETE);
 
         String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
         if (text == null) {
@@ -79,7 +79,7 @@ public class GroupSessionState implements SessionState {
         }
 
         if (sessionDto.getGroupWindow().isEmpty()) {
-            sessionDto.setMessageState(MessageState.MAIN_MENU);
+            sessionDto.setMessageState(MessageState.NOTHING);
             return;
         }
 
@@ -117,7 +117,7 @@ public class GroupSessionState implements SessionState {
             groupWindowService.moveBackward(sessionDto);
 
             if (sessionDto.getGroupWindow().isEmpty()) {
-                sessionDto.setMessageState(MessageState.MAIN_MENU);
+                sessionDto.setMessageState(MessageState.NOTHING);
                 return;
             }
 

@@ -15,6 +15,5 @@ public class RootGroupBootstrap implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        groupService.createRootIfMissing();
     }
 }

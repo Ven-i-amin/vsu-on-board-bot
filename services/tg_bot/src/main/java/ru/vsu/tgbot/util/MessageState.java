@@ -1,7 +1,7 @@
 package ru.vsu.tgbot.util;
 
 public enum MessageState {
-    MAIN_MENU,
+    NOTHING,
     LANGUAGE,
     WELCOME,
     GROUP,

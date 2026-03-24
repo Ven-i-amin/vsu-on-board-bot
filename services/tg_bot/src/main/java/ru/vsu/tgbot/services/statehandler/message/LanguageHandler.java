@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.services.sessionstate;
+package ru.vsu.tgbot.services.statehandler.message;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,17 +13,14 @@ import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.UiMessageControl;
 import ru.vsu.tgbot.services.core.LanguageService;
 import ru.vsu.tgbot.services.core.UserService;
-import ru.vsu.tgbot.util.BotState;
-import ru.vsu.tgbot.util.MessageState;
-import ru.vsu.tgbot.util.MessageUtil;
-import ru.vsu.tgbot.util.UiMessage;
+import ru.vsu.tgbot.util.*;
 
 import java.util.List;
 
 @Service
 @Slf4j
 @AllArgsConstructor
-public class LanguageSessionState implements SessionState {
+public class LanguageHandler implements MessageStateHandler {
     public static final int LANGUAGE_ROW_SIZE = 1;
     private final LanguageService languageService;
     private final UserService userService;
@@ -32,13 +29,9 @@ public class LanguageSessionState implements SessionState {
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
         if (sessionDto.getBotState() == BotState.SEND) {
-            sender.send(answer(sessionDto));
+            sessionDto.setLastMessageId(sender.send(answer(sessionDto)).getMessageId());
         } else {
-            SendMessage message = listen(sessionDto);
-
-            if (message != null) {
-                sender.send(message);
-            }
+            listen(sessionDto);
         }
     }
 
@@ -73,44 +66,37 @@ public class LanguageSessionState implements SessionState {
         return messageBuilder.build();
     }
 
-    private SendMessage listen(SessionDto sessionDto) {
-        sessionDto.setBotState(BotState.SEND);
+    private void listen(SessionDto sessionDto) {
+        sessionDto.setBotState(BotState.DELETE);
+        sessionDto.setGlobalState(GlobalState.CREATE);
+
         List<LanguageDto> availableLanguages = languageService.getLanguages();
         String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
 
         if (availableLanguages.isEmpty() || text == null) {
-            return null;
+            return;
         }
 
-        LanguageDto language = availableLanguages.stream()
-                .filter(lang -> lang.code().equals(text))
-                .findFirst()
-                .orElse(null);
+        LanguageDto language = findLanguage(availableLanguages, text);
 
         if (language == null) {
-            return null;
+            return;
         }
 
-        sessionDto.setMessageState(
-                sessionDto.getLangCode() == null ? MessageState.MAIN_MENU : MessageState.GROUP
-        );
-
         sessionDto.setLangCode(language.code());
+        sessionDto.setMessageState(MessageState.NOTHING);
         userService.updateLangCode(sessionDto.getChatId(), language.code());
-
-        String questionText = uiMessageService.getUiMessageText(
-                UiMessage.QUESTION_LISTEN,
-                language.code()
-        );
-
-        return SendMessage.builder()
-                .chatId(sessionDto.getChatId())
-                .text(questionText)
-                .build();
     }
 
     @Override
     public MessageState getState() {
         return MessageState.LANGUAGE;
+    }
+
+    private LanguageDto findLanguage(List<LanguageDto> availableLanguages, String code) {
+        return availableLanguages.stream()
+                .filter(lang -> lang.code().equals(code))
+                .findFirst()
+                .orElse(null);
     }
 }

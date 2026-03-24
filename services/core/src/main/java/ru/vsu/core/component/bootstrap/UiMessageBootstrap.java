@@ -16,6 +16,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UiMessageBootstrap implements ApplicationRunner {
     private static final String DEFAULT_LANGUAGE_CODE = "ru";
+    private static final String ENGLISH_LANGUAGE_CODE = "en";
 
     private final UiMessageService uiMessageService;
 
@@ -25,28 +26,31 @@ public class UiMessageBootstrap implements ApplicationRunner {
     }
 
     private void ensureExists(DefaultUiMessage message) {
-        if (uiMessageService.findByName(message.name()) != null) {
-            return;
-        }
-
         uiMessageService.save(UiMessageDto.builder()
                 .name(message.name())
-                .text(Map.of(DEFAULT_LANGUAGE_CODE, message.text()))
+                .text(message.text())
                 .build());
     }
 
     private List<DefaultUiMessage> defaultMessages() {
         return List.of(
-                new DefaultUiMessage("back", "Назад"),
-                new DefaultUiMessage("start", "В начало"),
-                new DefaultUiMessage("welcome", "Добро пожаловать!"),
-                new DefaultUiMessage("main-menu", "Главное меню"),
-                new DefaultUiMessage("language_title", "Выбрать язык"),
-                new DefaultUiMessage("question_listen", "Выберите раздел в главном меню."),
-                new DefaultUiMessage("question_answer", "Выберите язык.")
+                new DefaultUiMessage("back", localizedText("Назад", "Back")),
+                new DefaultUiMessage("start", localizedText("В начало", "Home")),
+                new DefaultUiMessage("welcome", localizedText("Добро пожаловать!", "Welcome!")),
+                new DefaultUiMessage("main-menu", localizedText("Главное меню", "Main menu")),
+                new DefaultUiMessage("language_title", localizedText("Выбрать язык", "Choose a language")),
+                new DefaultUiMessage("question_listen", localizedText("Выберите раздел в главном меню.", "Choose a section in the main menu.")),
+                new DefaultUiMessage("question_answer", localizedText("Выберите язык.", "Choose a language."))
         );
     }
 
-    private record DefaultUiMessage(String name, String text) {
+    private Map<String, String> localizedText(String russianText, String englishText) {
+        return Map.of(
+                DEFAULT_LANGUAGE_CODE, russianText,
+                ENGLISH_LANGUAGE_CODE, englishText
+        );
+    }
+
+    private record DefaultUiMessage(String name, Map<String, String> text) {
     }
 }
