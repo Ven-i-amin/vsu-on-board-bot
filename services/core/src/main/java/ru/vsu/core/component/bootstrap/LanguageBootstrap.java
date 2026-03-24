@@ -23,6 +23,12 @@ public class LanguageBootstrap implements ApplicationRunner {
             return;
         }
 
-        languageService.save(new LanguageDto(DEFAULT_LANGUAGE_CODE, DEFAULT_LANGUAGE_NAME));
+        languageService.save(
+                new LanguageDto(DEFAULT_LANGUAGE_CODE, DEFAULT_LANGUAGE_NAME)
+        );
+
+        languageService.save(
+                new LanguageDto("en", "English")
+        );
     }
 }

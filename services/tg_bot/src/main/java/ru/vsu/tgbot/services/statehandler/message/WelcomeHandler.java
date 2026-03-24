@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.services.sessionstate;
+package ru.vsu.tgbot.services.statehandler.message;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,13 +8,14 @@ import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.UiMessageControl;
 import ru.vsu.tgbot.services.core.GroupService;
-import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
+import ru.vsu.tgbot.util.GlobalState;
+import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.UiMessage;
 
 @Service
 @AllArgsConstructor
-public class WelcomeSessionState implements SessionState {
+public class WelcomeHandler implements MessageStateHandler {
     private final GroupService groupService;
     private final UiMessageControl uiMessageService;
 
@@ -32,13 +33,19 @@ public class WelcomeSessionState implements SessionState {
             return;
         }
 
-        sessionDto.setMessageState(MessageState.MAIN_MENU);
+        sessionDto.setMessageState(MessageState.NOTHING);
+        sessionDto.setGlobalState(GlobalState.CREATE);
 
-        sender.send(SendMessage
-                .builder()
-                .chatId(sessionDto.getChatId())
-                .text(uiMessageService.getUiMessageText(UiMessage.WELCOME, sessionDto.getLangCode()))
-                .build());
+        sessionDto.setLastMessageId(sender.send(SendMessage
+                        .builder()
+                        .chatId(sessionDto.getChatId())
+                        .text(uiMessageService.getUiMessageText(
+                                UiMessage.WELCOME,
+                                sessionDto.getLangCode()
+                        ))
+                        .build())
+                .getMessageId()
+        );
     }
 
     @Override

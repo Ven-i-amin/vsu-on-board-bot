@@ -158,12 +158,16 @@ public class GroupServiceImpl implements GroupService {
     private Map<String, String> buildRootTitle() {
         Map<String, String> title = new LinkedHashMap<>();
 
-        languageService.findAll().forEach(language -> title.put(
-                language.code(),
+        title.put(
+                "ru",
                 ROOT_TITLE_RU
-        ));
+        );
 
-        title.putIfAbsent(DEFAULT_LANGUAGE_CODE, ROOT_TITLE_RU);
+        title.put(
+                "en",
+                "Main Menu"
+        );
+
         return title;
     }
 }

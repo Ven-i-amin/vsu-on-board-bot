@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.services.sessionstate;
+package ru.vsu.tgbot.services.statehandler.message;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
-import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
@@ -20,14 +19,14 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class QuestionSessionState implements SessionState {
+public class QuestionHandler implements MessageStateHandler {
     private final GroupWindowService groupWindowService;
     private final UiMessageControl uiMessageService;
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
         if (sessionDto.getBotState() == BotState.SEND) {
-            sender.send(answer(sessionDto));
+            sessionDto.setLastMessageId(sender.send(answer(sessionDto)).getMessageId());
         } else {
             listen(sessionDto);
         }
@@ -35,12 +34,12 @@ public class QuestionSessionState implements SessionState {
 
     private SendMessage answer(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.LISTEN);
+
         SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder();
 
         builder.chatId(sessionDto.getChatId());
 
         String callback = MessageUtil.extractUserInput(sessionDto.getUpdate());
-
         List<QuestionDto> questions;
 
         if (sessionDto.getGroupWindow().isEmpty()) {
@@ -59,15 +58,15 @@ public class QuestionSessionState implements SessionState {
         if (question.getText() == null) {
             text = MessageUtil.NOT_FOUND_MESSAGE;
         } else {
-            text = question.getText().getOrDefault("ru", MessageUtil.NOT_FOUND_MESSAGE);
+            text = question.getText().getOrDefault(sessionDto.getLangCode(), MessageUtil.NOT_FOUND_MESSAGE);
         }
 
         builder.text(text);
 
         List<InlineKeyboardRow> column = MessageUtil.getInlineButtonColumn(
                 List.of(
-                        uiMessageService.getUiMessageNameAndText(UiMessage.BACK, sessionDto.getLangCode()),
-                        uiMessageService.getUiMessageNameAndText(UiMessage.START, sessionDto.getLangCode())
+                        uiMessageService.getUiMessageNameAndText(UiMessage.BACK, sessionDto.getLangCode())
+//                        uiMessageService.getUiMessageNameAndText(UiMessage.START, sessionDto.getLangCode())
                 ),
                 2
         );
@@ -79,7 +78,7 @@ public class QuestionSessionState implements SessionState {
     }
 
     private void listen(SessionDto sessionDto) {
-        sessionDto.setBotState(BotState.SEND);
+        sessionDto.setBotState(BotState.DELETE);
 
         String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
         if (text == null) {
@@ -94,7 +93,7 @@ public class QuestionSessionState implements SessionState {
         }
 
         if (text.equals(UiMessage.START.getValue())) {
-            sessionDto.setMessageState(MessageState.MAIN_MENU);
+            sessionDto.setMessageState(MessageState.NOTHING);
             groupWindowService.moveToStart(sessionDto);
             return;
         }
