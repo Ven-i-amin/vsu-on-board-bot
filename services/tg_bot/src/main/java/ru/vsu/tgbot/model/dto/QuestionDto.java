@@ -10,7 +10,7 @@ import java.util.Map;
 public class QuestionDto {
     private String questionId;
     private String name;
-    private GroupDto parent;
+    private String parent;
     private Map<String, String> title;
     private Map<String, String> text;
 }

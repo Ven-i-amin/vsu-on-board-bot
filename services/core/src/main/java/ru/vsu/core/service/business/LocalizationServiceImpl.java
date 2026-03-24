@@ -50,17 +50,17 @@ public class LocalizationServiceImpl implements LocalizationService{
         private final String groupId;
         private final String name;
         private Map<String, String> title;
-        private final String parentId;
+        private final String parentName;
 
-        private LocalizationDtoGroupBuilder(String groupId, String name, Map<String, String> title, String parentId) {
+        private LocalizationDtoGroupBuilder(String groupId, String name, Map<String, String> title, String parentName) {
             this.groupId = groupId;
             this.name = name;
             this.title = title;
-            this.parentId = parentId;
+            this.parentName = parentName;
         }
 
         static LocalizationDtoGroupBuilder from(ru.vsu.core.model.dto.GroupDto group) {
-            return new LocalizationDtoGroupBuilder(group.groupId(), group.name(), group.title(), group.parentId());
+            return new LocalizationDtoGroupBuilder(group.groupId(), group.name(), group.title(), group.parentName());
         }
 
         LocalizationDtoGroupBuilder title(Map<String, String> title) {
@@ -73,7 +73,7 @@ public class LocalizationServiceImpl implements LocalizationService{
                     .groupId(groupId)
                     .name(name)
                     .title(title)
-                    .parentId(parentId)
+                    .parentName(parentName)
                     .build();
         }
     }

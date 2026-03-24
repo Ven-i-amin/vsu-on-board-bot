@@ -10,7 +10,7 @@ public record GroupNodeDto (
     String groupId,
     String name,
     Map<String, String> title,
-    String parentId,
+    String parentName,
     List<QuestionDto> questions,
-    int level
+    Long level
 ) {}

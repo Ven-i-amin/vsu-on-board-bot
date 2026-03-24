@@ -5,10 +5,10 @@ import ru.vsu.tgbot.model.dto.GroupDto;
 import java.util.List;
 
 public interface GroupService {
-    GroupDto getQuestionGroup(String groupId, String language);
-    GroupDto getGroupWithDepth(String groupId, Integer depth, String language);
-    List<GroupDto> getInnerGroups(String thisGroupId, String language);
-    List<GroupDto> getInnerGroupsForEachGroup(List<String> groupIds, String language);
-    GroupDto getStartGroup(String language);
+    GroupDto getQuestionGroup(String groupName, String language);
+    GroupDto getGroupWithDepth(String groupName, Integer depth, String language);
+    GroupDto getGroupByNameWithDepth(String groupName, Integer depth, String language);
+    List<GroupDto> getInnerGroups(String groupName, String language);
+    List<GroupDto> getInnerGroupsForEachGroup(List<String> groupNames, String language);
     GroupDto getStartGroup();
 }

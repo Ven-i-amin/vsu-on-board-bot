@@ -10,7 +10,7 @@ public record GroupTreeDto(
         String groupId,
         String name,
         Map<String, String> title,
-        String parentId,
+        String parentName,
         List<GroupTreeDto> innerGroups,
         List<QuestionDto> questions
 ) {

@@ -17,7 +17,11 @@ public class LanguageControlImpl implements LanguageControl {
 
     @PostConstruct
     private void init() {
-        languageList.addAll(languageService.getLanguages());
+        try {
+            languageList.addAll(languageService.getLanguages());
+        } catch (RuntimeException ignored) {
+            languageList.add(new LanguageDto("ru", "Русский"));
+        }
     }
 
 

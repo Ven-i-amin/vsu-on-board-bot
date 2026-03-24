@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
+import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
@@ -38,23 +39,40 @@ public class QuestionSessionState implements SessionState {
 
         builder.chatId(sessionDto.getChatId());
 
-        QuestionDto question = sessionDto.getGroupWindow()
-                .getLast()
-                .questions()
-                .getFirst();
+        String callback = MessageUtil.extractUserInput(sessionDto.getUpdate());
 
-        builder.text(question.getText().get(sessionDto.getLangCode()));
+        List<QuestionDto> questions;
+
+        if (sessionDto.getGroupWindow().isEmpty()) {
+            questions = sessionDto.getStart().getQuestions();
+        } else {
+            questions = sessionDto.getGroupWindow().getLast().getQuestions();
+        }
+
+        QuestionDto question = questions.stream()
+                .filter(el -> el.getName().equals(callback))
+                .findFirst()
+                .orElse(null);
+
+        String text;
+
+        if (question.getText() == null) {
+            text = MessageUtil.NOT_FOUND_MESSAGE;
+        } else {
+            text = question.getText().getOrDefault("ru", MessageUtil.NOT_FOUND_MESSAGE);
+        }
+
+        builder.text(text);
 
         List<InlineKeyboardRow> column = MessageUtil.getInlineButtonColumn(
                 List.of(
-                uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode()),
-                uiMessageService.getUiMessageText(UiMessage.START, sessionDto.getLangCode())
+                        uiMessageService.getUiMessageNameAndText(UiMessage.BACK, sessionDto.getLangCode()),
+                        uiMessageService.getUiMessageNameAndText(UiMessage.START, sessionDto.getLangCode())
                 ),
-                1
+                2
         );
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup(column);
-
         builder.replyMarkup(markup);
 
         return builder.build();
@@ -63,18 +81,25 @@ public class QuestionSessionState implements SessionState {
     private void listen(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.SEND);
 
-        String text = sessionDto.getText();
-        String backText = uiMessageService.getUiMessageText(UiMessage.BACK, sessionDto.getLangCode());
-        String startText = uiMessageService.getUiMessageText(UiMessage.START, sessionDto.getLangCode());
+        String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
+        if (text == null) {
+            sessionDto.setBotState(BotState.LISTEN);
+            return;
+        }
 
-        if (text.equals(backText)) {
+        if (text.equals(UiMessage.BACK.getValue())) {
+            sessionDto.setMessageState(MessageState.GROUP);
             groupWindowService.moveBackward(sessionDto);
             return;
         }
 
-        if (text.equals(startText)) {
+        if (text.equals(UiMessage.START.getValue())) {
+            sessionDto.setMessageState(MessageState.MAIN_MENU);
             groupWindowService.moveToStart(sessionDto);
+            return;
         }
+
+        sessionDto.setBotState(BotState.LISTEN);
     }
 
     @Override

@@ -19,8 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @ConditionalOnProperty(
         value = "app.bootstrap.root-content.enabled",
-        havingValue = "true",
-        matchIfMissing = true
+        havingValue = "true"
 )
 public class RootContentBootstrap implements ApplicationRunner {
     private static final String DEFAULT_LANGUAGE_CODE = "ru";
@@ -36,52 +35,55 @@ public class RootContentBootstrap implements ApplicationRunner {
         GroupDto languageGroup = ensureGroup(rootGroup.groupId(), "language-settings", "Настройки языка");
 
         ensureQuestion(
-                aboutGroup.groupId(),
+                aboutGroup.name(),
                 "what-can-bot-do",
                 "Что умеет бот?",
                 "Бот помогает выбрать раздел и получить ответы на часто задаваемые вопросы."
         );
         ensureQuestion(
-                aboutGroup.groupId(),
+                aboutGroup.name(),
                 "how-to-start",
                 "С чего начать?",
                 "Откройте нужный раздел в главном меню и выберите интересующий вопрос."
         );
         ensureQuestion(
-                languageGroup.groupId(),
+                languageGroup.name(),
                 "how-to-change-language",
                 "Как сменить язык?",
                 "Нажмите кнопку «Выбрать язык» в главном меню и выберите русский."
         );
         ensureQuestion(
-                languageGroup.groupId(),
+                languageGroup.name(),
                 "available-languages",
                 "Какие языки доступны?",
                 "По умолчанию сервис создаёт только русский язык."
         );
     }
 
-    private GroupDto ensureGroup(String parentId, String name, String title) {
+    private GroupDto ensureGroup(String parentGroupId, String name, String title) {
         GroupDto existingGroup = groupService.findByName(name);
         if (existingGroup != null) {
             return existingGroup;
         }
 
+        GroupDto parentGroup = groupService.findById(parentGroupId);
+        String parentName = parentGroup == null ? null : parentGroup.name();
+
         return groupService.save(GroupDto.builder()
                 .name(name)
                 .title(localizedValue(title))
-                .parentId(parentId)
+                .parentName(parentName)
                 .build());
     }
 
-    private void ensureQuestion(String groupId, String name, String title, String text) {
-        if (questionService.findByParentGroupIdAndName(groupId, name) != null) {
+    private void ensureQuestion(String groupName, String name, String title, String text) {
+        if (questionService.findByParentGroupNameAndName(groupName, name) != null) {
             return;
         }
 
         questionService.save(QuestionDto.builder()
                 .name(name)
-                .parent(groupId)
+                .parent(groupName)
                 .title(localizedValue(title))
                 .text(localizedValue(text))
                 .build());

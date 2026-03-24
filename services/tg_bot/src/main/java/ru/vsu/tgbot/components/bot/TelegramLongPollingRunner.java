@@ -1,75 +1,40 @@
 package ru.vsu.tgbot.components.bot;
 
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
+import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
+import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
+import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.vsu.tgbot.config.TelegramBotProperties;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import ru.vsu.tgbot.services.business.QueryService;
 
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "telegram.bot.mode", havingValue = "long-polling")
 @RequiredArgsConstructor
-public class TelegramLongPollingRunner {
-    private final TelegramClient telegramClient;
-    private final TgUpdateConsumer updateConsumer;
-    private final TelegramBotProperties properties;
-    private final ExecutorService sessionPatchExecutor;
+public class TelegramLongPollingRunner implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
+    @Value("${telegram.bot.token}")
+    private String token;
 
-    private volatile boolean running;
-    private volatile Integer offset;
-    private Future<?> pollingTask;
+    @Autowired
+    private QueryService queryService;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void start() {
-        running = true;
-        pollingTask = sessionPatchExecutor.submit(this::pollLoop);
-        log.info("Telegram long polling started");
+    @Override
+    public String getBotToken() {
+        return token;
     }
 
-    @PreDestroy
-    public void stop() {
-        running = false;
-
-        if (pollingTask != null) {
-            pollingTask.cancel(true);
-        }
+    @Override
+    public LongPollingUpdateConsumer getUpdatesConsumer() {
+        return this;
     }
 
-    private void pollLoop() {
-        while (running && !Thread.currentThread().isInterrupted()) {
-            try {
-                List<Update> updates = telegramClient.execute(GetUpdates.builder()
-                        .offset(offset)
-                        .timeout(properties.pollingTimeoutSeconds())
-                        .build());
-
-                for (Update update : updates) {
-                    offset = update.getUpdateId() + 1;
-                    updateConsumer.consume(update);
-                }
-            } catch (Exception e) {
-                log.warn("Telegram long polling request failed", e);
-                sleepBackoff();
-            }
-        }
-    }
-
-    private void sleepBackoff() {
-        try {
-            Thread.sleep(3_000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    @Override
+    public void consume(Update update) {
+        queryService.processQuery(update);
     }
 }

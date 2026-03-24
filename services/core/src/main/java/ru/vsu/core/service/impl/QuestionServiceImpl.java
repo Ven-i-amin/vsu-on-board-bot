@@ -38,13 +38,13 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<QuestionDto> findByParentGroupId(String groupId) {
-        return questionMapper.toDtoList(questionRepository.findByGroupId(groupId));
+    public List<QuestionDto> findByParentGroupName(String groupName) {
+        return questionMapper.toDtoList(questionRepository.findByGroupName(groupName));
     }
 
     @Override
-    public QuestionDto findByParentGroupIdAndName(String groupId, String name) {
-        return questionRepository.findByGroupIdAndName(groupId, name)
+    public QuestionDto findByParentGroupNameAndName(String groupName, String name) {
+        return questionRepository.findByGroupNameAndName(groupName, name)
                 .map(questionMapper::toDto)
                 .orElse(null);
     }

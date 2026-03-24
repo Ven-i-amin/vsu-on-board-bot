@@ -17,12 +17,12 @@ import java.util.Map;
 public interface QuestionMapper {
     QuestionMapper INSTANCE = Mappers.getMapper(QuestionMapper.class);
 
-    @org.mapstruct.Mapping(source = "groupId", target = "parent")
+    @org.mapstruct.Mapping(source = "groupName", target = "parent")
     QuestionDto toDto(Question question);
 
     List<QuestionDto> toDtoList(List<Question> questions);
 
-    @org.mapstruct.Mapping(source = "parent", target = "groupId")
+    @org.mapstruct.Mapping(source = "parent", target = "groupName")
     Question toEntity(QuestionDto questionDto);
 
     List<Question> toEntityList(List<QuestionDto> questionDtos);
@@ -30,7 +30,7 @@ public interface QuestionMapper {
     default QuestionLocalizedDto toLocalizedDto(
             Question question,
             @Context String languageCode,
-            @Context Map<String, Group> groupsById
+            @Context Map<String, Group> groupsByName
     ) {
         if (question == null) {
             return null;
@@ -38,7 +38,7 @@ public interface QuestionMapper {
         return QuestionLocalizedDto.builder()
                 .questionId(question.getQuestionId())
                 .name(question.getName())
-                .parent(toShallowLocalizedGroup(groupsById.get(question.getGroupId()), languageCode))
+                .parent(toShallowLocalizedGroup(groupsByName.get(question.getGroupName()), languageCode))
                 .title(localize(question.getTitle(), languageCode))
                 .text(localize(question.getText(), languageCode))
                 .build();
@@ -47,10 +47,10 @@ public interface QuestionMapper {
     default List<QuestionLocalizedDto> toLocalizedDtoList(
             List<Question> questions,
             @Context String languageCode,
-            @Context Map<String, Group> groupsById
+            @Context Map<String, Group> groupsByName
     ) {
         return questions == null ? null : questions.stream()
-                .map(question -> toLocalizedDto(question, languageCode, groupsById))
+                .map(question -> toLocalizedDto(question, languageCode, groupsByName))
                 .toList();
     }
 

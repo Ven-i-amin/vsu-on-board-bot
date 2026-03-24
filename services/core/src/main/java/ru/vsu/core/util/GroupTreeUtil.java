@@ -6,7 +6,6 @@ import ru.vsu.core.model.dto.GroupTreeDto;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GroupTreeUtil {
     public static GroupNodeDto findRootById(List<GroupNodeDto> nodes, String rootId) {
@@ -25,20 +24,20 @@ public class GroupTreeUtil {
 
     public static GroupTreeDto buildTree(GroupNodeDto root, List<GroupNodeDto> nodes) {
         GroupTreeDto start = toTree(root);
-        HashMap<String, GroupTreeDto> treeNodes = getNodesMap(start, nodes);
+        HashMap<String, GroupTreeDto> treeNodes = getNodesMap(start, root, nodes);
 
         fillInnerGroups(treeNodes, nodes);
 
         return start;
     }
 
-    public static HashMap<String, GroupTreeDto> getNodesMap(GroupTreeDto startNode, List<GroupNodeDto> nodes) {
-
-        HashMap<String, GroupTreeDto> treeNodes = new HashMap<>(Map.of(startNode.groupId(), startNode));
+    public static HashMap<String, GroupTreeDto> getNodesMap(GroupTreeDto startNode, GroupNodeDto rootNode, List<GroupNodeDto> nodes) {
+        HashMap<String, GroupTreeDto> treeNodes = new HashMap<>();
+        treeNodes.put(rootNode.name(), startNode);
 
         for (GroupNodeDto node : nodes) {
             GroupTreeDto tree = toTree(node);
-            treeNodes.put(node.groupId(), tree);
+            treeNodes.put(node.name(), tree);
         }
 
         return treeNodes;
@@ -46,8 +45,8 @@ public class GroupTreeUtil {
 
     public static void fillInnerGroups(HashMap<String, GroupTreeDto> treeNodes, List<GroupNodeDto> nodes) {
         for (GroupNodeDto node : nodes) {
-            GroupTreeDto currentTree = treeNodes.get(node.groupId());
-            GroupTreeDto parentTree = treeNodes.get(node.parentId());
+            GroupTreeDto currentTree = treeNodes.get(node.name());
+            GroupTreeDto parentTree = treeNodes.get(node.parentName());
 
             if (parentTree != null && currentTree != null) {
                 parentTree.innerGroups().add(currentTree);
@@ -60,7 +59,7 @@ public class GroupTreeUtil {
                 .groupId(group.groupId())
                 .name(group.name())
                 .title(group.title())
-                .parentId(group.parentId())
+                .parentName(group.parentName())
                 .innerGroups(new ArrayList<>())
                 .questions(group.questions() == null ? new ArrayList<>() : group.questions())
                 .build();

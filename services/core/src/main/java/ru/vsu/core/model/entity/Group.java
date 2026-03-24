@@ -21,5 +21,5 @@ public class Group {
     @Indexed(unique=true)
     private String name;
     private Map<String, String> title;
-    private String parentId;
+    private String parentName;
 }

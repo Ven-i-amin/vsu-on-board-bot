@@ -22,23 +22,16 @@ public class WelcomeSessionState implements SessionState {
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
         sessionDto.setBotState(BotState.SEND);
 
-        GroupDto startGroup;
+        GroupDto startGroup = groupService.getStartGroup();
+
+        sessionDto.setStart(startGroup);
+        sessionDto.getGroupWindow().clear();
 
         if (sessionDto.getLangCode() == null) {
             sessionDto.setMessageState(MessageState.LANGUAGE);
-
-            startGroup = groupService.getStartGroup();
-
-            sessionDto.setStart(startGroup);
-            sessionDto.getGroupWindow().add(startGroup);
-
             return;
         }
 
-        startGroup = groupService.getStartGroup(sessionDto.getLangCode());
-
-        sessionDto.setStart(startGroup);
-        sessionDto.getGroupWindow().add(startGroup);
         sessionDto.setMessageState(MessageState.MAIN_MENU);
 
         sender.send(SendMessage

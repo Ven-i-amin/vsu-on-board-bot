@@ -9,6 +9,6 @@ public interface QuestionService {
     QuestionDto findById(String questionId);
     QuestionDto save(QuestionDto question);
     void deleteById(String questionId);
-    List<QuestionDto> findByParentGroupId(String groupId);
-    QuestionDto findByParentGroupIdAndName(String groupId, String name);
+    List<QuestionDto> findByParentGroupName(String groupName);
+    QuestionDto findByParentGroupNameAndName(String groupName, String name);
 }

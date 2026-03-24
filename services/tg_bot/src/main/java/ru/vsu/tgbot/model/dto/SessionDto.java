@@ -1,15 +1,18 @@
 package ru.vsu.tgbot.model.dto;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
-import ru.vsu.tgbot.model.response.UiMessageResponse;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,13 +22,14 @@ import java.util.List;
 public class SessionDto {
     @Id
     private Long chatId;
-    private String text;
+    private Update update;
     @NotNull
     private BotState botState;
     @NotNull
     private MessageState messageState;
     private GroupDto start;
-    private List<GroupDto> groupWindow;
-    private List<UiMessageResponse> uiMessages;
+    @Builder.Default
+    private List<GroupDto> groupWindow = new ArrayList<>();
+    private List<UiMessageResponseDto> uiMessages;
     private String langCode;
 }

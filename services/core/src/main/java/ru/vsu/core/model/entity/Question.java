@@ -18,7 +18,7 @@ public class Question {
     @Id
     private String questionId;
     private String name;
-    private String groupId;
+    private String groupName;
     private Map<String, String> title;
     private Map<String, String> text;
 }

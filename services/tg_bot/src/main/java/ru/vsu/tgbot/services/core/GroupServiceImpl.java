@@ -1,100 +1,113 @@
 package ru.vsu.tgbot.services.core;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import ru.vsu.contract.model.response.GroupResponseDto;
 import ru.vsu.tgbot.components.mapper.CoreResponseMapper;
 import ru.vsu.tgbot.model.dto.GroupDto;
-import ru.vsu.tgbot.model.response.GroupResponseDto;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class GroupServiceImpl implements GroupService {
     private final WebClient coreClient;
     private final CoreResponseMapper coreResponseMapper;
 
     @Override
-    public GroupDto getQuestionGroup(String groupId, String language) {
-        return coreClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/group/{groupId}")
-                        .queryParam("lang", language)
-                        .build(groupId)
-                )
-                .retrieve()
-                .bodyToMono(GroupResponseDto.class)
-                .map(coreResponseMapper::toGroupDto)
-                .block();
+    public GroupDto getQuestionGroup(String groupName, String language) {
+        return getGroupWithDepth(groupName, 0, language);
     }
 
     @Override
-    public GroupDto getGroupWithDepth(String groupId, Integer depth, String language) {
-        return coreClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/group/{groupId}")
-                        .queryParam("lang", language)
-                        .queryParam("depth", depth)
-                        .build(groupId)
-                )
-                .retrieve()
-                .bodyToMono(GroupResponseDto.class)
-                .map(coreResponseMapper::toGroupDto)
-                .block();
+    public GroupDto getGroupWithDepth(String groupName, Integer depth, String language) {
+        return getGroupByNameWithDepth(groupName, depth, language);
     }
 
     @Override
-    public List<GroupDto> getInnerGroups(String thisGroupId, String language) {
-        return coreClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/group/{groupId}/inner")
-                        .queryParam("lang", language)
-                        .build(thisGroupId)
-                )
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
-                .map(coreResponseMapper::toGroupDtoList)
-                .block();
+    public GroupDto getGroupByNameWithDepth(String groupName, Integer depth, String language) {
+        try {
+            GroupDto group = coreClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/group/name/{groupName}")
+                            .queryParam("depth", depth)
+                            .build(groupName)
+                    )
+                    .retrieve()
+                    .bodyToMono(GroupResponseDto.class)
+                    .map(coreResponseMapper::toGroupDto)
+                    .block();
+            return group == null ? placeholderGroup(groupName) : group;
+        } catch (RuntimeException ex) {
+            log.warn("Failed to fetch group by name {} from core", groupName, ex);
+            return placeholderGroup(groupName);
+        }
     }
 
     @Override
-    public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupIds, String language) {
-        return coreClient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/group/list")
-                        .queryParam("lang", language)
-                        .build()
-                )
-                .bodyValue(groupIds)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
-                .map(coreResponseMapper::toGroupDtoList)
-                .block();
+    public List<GroupDto> getInnerGroups(String groupName, String language) {
+        try {
+            List<GroupDto> groups = coreClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/group/name/{groupName}/inner")
+                            .build(groupName)
+                    )
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
+                    .map(coreResponseMapper::toGroupDtoList)
+                    .block();
+            return groups == null ? List.of() : groups;
+        } catch (RuntimeException ex) {
+            log.warn("Failed to fetch inner groups for {}", groupName, ex);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupNames, String language) {
+        try {
+            List<GroupDto> groups = coreClient.post()
+                    .uri("/group/name/list")
+                    .bodyValue(groupNames)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
+                    .map(coreResponseMapper::toGroupDtoList)
+                    .block();
+            return groups == null ? List.of() : groups;
+        } catch (RuntimeException ex) {
+            log.warn("Failed to fetch nested groups from core", ex);
+            return List.of();
+        }
     }
 
     @Override
     public GroupDto getStartGroup() {
-        return coreClient.get()
-                .uri("/group/start")
-                .retrieve()
-                .bodyToMono(GroupResponseDto.class)
-                .map(coreResponseMapper::toGroupDto)
-                .block();
+        try {
+            GroupDto group = coreClient.get()
+                    .uri("/group/start")
+                    .retrieve()
+                    .bodyToMono(GroupResponseDto.class)
+                    .map(coreResponseMapper::toGroupDto)
+                    .block();
+            return group == null ? placeholderGroup("start") : group;
+        } catch (RuntimeException ex) {
+            log.warn("Failed to fetch start group from core", ex);
+            return placeholderGroup("start");
+        }
     }
 
-    @Override
-    public GroupDto getStartGroup(String language) {
-        return coreClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/group/start")
-                        .queryParam("lang", language)
-                        .build()
-                )
-                .retrieve()
-                .bodyToMono(GroupResponseDto.class)
-                .map(coreResponseMapper::toGroupDto)
-                .block();
+    private GroupDto placeholderGroup(String groupName) {
+        String langCode = "ru";
+        return GroupDto.builder()
+                .name(groupName)
+                .title(Map.of(langCode, "Сервис временно недоступен"))
+                .innerGroups(new java.util.ArrayList<>())
+                .questions(new java.util.ArrayList<>())
+                .build();
     }
 }

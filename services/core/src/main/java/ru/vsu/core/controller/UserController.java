@@ -1,10 +1,11 @@
 package ru.vsu.core.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.vsu.contract.model.response.UserResponseDto;
 import ru.vsu.core.component.mapper.ResponseMapper;
 import ru.vsu.core.model.dto.UserDto;
-import ru.vsu.core.model.response.UserResponseDto;
 import ru.vsu.core.service.UserService;
 
 @RestController
@@ -23,8 +24,15 @@ public class UserController {
     public UserResponseDto addUser(@RequestBody UserResponseDto user) {
         UserDto savedUser = userService.save(UserDto.builder()
                 .chatId(user.chatId())
-                .langCode(user.language())
+                .langCode(user.langCode())
                 .build());
+        return responseMapper.toResponse(savedUser);
+    }
+
+    @PutMapping("/{chatId}/langCode")
+    @ResponseStatus(HttpStatus.OK)
+    public UserResponseDto updateLangCode(@PathVariable Long chatId, @RequestBody UserResponseDto user) {
+        UserDto savedUser = userService.updateLangCode(chatId, user.langCode());
         return responseMapper.toResponse(savedUser);
     }
 }

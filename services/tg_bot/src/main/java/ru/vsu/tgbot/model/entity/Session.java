@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
+import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
@@ -20,7 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @RedisHash(value = "session", timeToLive = Session.TIME_TO_LIVE)
 public class Session {
-    public static final int TIME_TO_LIVE = 3600;
+    public static final int TIME_TO_LIVE = 60;
     @Id
     private Long chatId;
     @NotNull
@@ -29,6 +30,8 @@ public class Session {
     private MessageState messageState;
     private GroupDto start;
     @NotNull
+    @Builder.Default
     private List<GroupDto> groupWindow = new ArrayList<>();
-    private String language;
+    private List<UiMessageResponseDto> uiMessages;
+    private String langCode;
 }

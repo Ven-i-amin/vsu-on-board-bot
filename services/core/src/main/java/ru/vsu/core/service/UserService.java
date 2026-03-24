@@ -8,5 +8,6 @@ public interface UserService {
     List<UserDto> findAll();
     UserDto findByChatId(Long chatId);
     UserDto save(UserDto user);
+    UserDto updateLangCode(Long chatId, String langCode);
     void deleteByChatId(Long chatId);
 }
