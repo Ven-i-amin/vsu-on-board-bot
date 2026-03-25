@@ -1,0 +1,48 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  core:
+    build:
+      context: ./core
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    environment:
+      CORE_PORT: 8081
+      MONGO_WAY: mongo
+      MONGO_PORT: 27017
+      MONGO_NAME: foreign_bot
+
+  tg-bot:
+    build:
+      context: ./tg_bot
+    restart: unless-stopped
+    depends_on:
+      - core
+      - redis
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CORE_BASE_URL: http://core:8081
+      TELEGRAM_BOT_MODE: long-polling
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
+
+volumes:
+  mongo_data:
+  redis_data:
