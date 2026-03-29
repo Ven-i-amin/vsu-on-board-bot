@@ -7,4 +7,6 @@ public interface GroupWindowService {
     void moveForward(SessionDto sessionDto, GroupDto newGroup);
     void moveBackward(SessionDto sessionDto);
     void moveToStart(SessionDto sessionDto);
+
+    void removeLastGroup(SessionDto sessionDto);
 }

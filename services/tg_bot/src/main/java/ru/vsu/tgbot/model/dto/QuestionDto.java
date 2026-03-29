@@ -2,7 +2,9 @@ package ru.vsu.tgbot.model.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -11,6 +13,8 @@ public class QuestionDto {
     private String questionId;
     private String name;
     private String parent;
-    private Map<String, String> title;
-    private Map<String, String> text;
+    @NotNull
+    private Map<String, String> title = new HashMap<>();
+    @NotNull
+    private Map<String, String> text = new HashMap<>();
 }

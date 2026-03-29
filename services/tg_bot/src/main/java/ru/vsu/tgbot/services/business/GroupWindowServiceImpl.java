@@ -6,7 +6,7 @@ import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.core.GroupService;
 import ru.vsu.tgbot.services.session.SessionService;
-import ru.vsu.tgbot.util.UiMessage;
+import ru.vsu.tgbot.util.UiMessageName;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -85,7 +85,7 @@ public class GroupWindowServiceImpl implements GroupWindowService {
 
         String parentName = groupPath.getFirst().getParentName();
 
-        if (parentName == null || parentName.equals(UiMessage.MAIN_MENU.getValue())) {
+        if (parentName == null || parentName.equals(UiMessageName.MAIN_MENU.getValue())) {
             return;
         }
 
@@ -109,6 +109,15 @@ public class GroupWindowServiceImpl implements GroupWindowService {
         List<GroupDto> groupPath = sessionDto.getGroupWindow();
 
         groupPath.clear();
+
+        sessionService.patchSessionByGroupPath(sessionDto.getChatId(), groupPath);
+    }
+
+    @Override
+    public void removeLastGroup(SessionDto sessionDto) {
+        List<GroupDto> groupPath = sessionDto.getGroupWindow();
+
+        groupPath.removeLast();
 
         sessionService.patchSessionByGroupPath(sessionDto.getChatId(), groupPath);
     }

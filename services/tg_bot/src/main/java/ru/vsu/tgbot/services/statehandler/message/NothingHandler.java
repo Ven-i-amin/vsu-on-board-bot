@@ -2,17 +2,22 @@ package ru.vsu.tgbot.services.statehandler.message;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.vsu.tgbot.components.bot.BotMessageSender;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.util.BotState;
 import ru.vsu.tgbot.util.MessageState;
 
 @Service
 @AllArgsConstructor
 public class NothingHandler implements MessageStateHandler{
+
     @Override
-    public void handle(SessionDto sessionDto, BotMessageSender sender) {
-        sessionDto.setBotState(BotState.LISTEN);
+    public SendMessage answer(SessionDto sessionDto) {
+        return null;
+    }
+
+    @Override
+    public boolean listen(SessionDto sessionDto) {
+        return true;
     }
 
     @Override

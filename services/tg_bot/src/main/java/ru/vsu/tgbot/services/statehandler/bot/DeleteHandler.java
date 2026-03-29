@@ -11,10 +11,6 @@ public class DeleteHandler implements BotStateHandler {
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
-        if (sessionDto.getBotState() != BotState.DELETE) {
-            return;
-        }
-
         if (sessionDto.getLastMessageId() == null) {
             sessionDto.setBotState(BotState.SEND);
             return;
@@ -28,5 +24,10 @@ public class DeleteHandler implements BotStateHandler {
         );
 
         sessionDto.setBotState(BotState.SEND);
+    }
+
+    @Override
+    public BotState getState() {
+        return BotState.DELETE;
     }
 }

@@ -1,47 +1,40 @@
 package ru.vsu.tgbot.services.business;
 
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.UiMessageDto;
 import ru.vsu.tgbot.services.core.UiMessageService;
 import ru.vsu.tgbot.util.MessageUtil;
-import ru.vsu.tgbot.util.UiMessage;
+import ru.vsu.tgbot.util.UiMessageName;
 
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UiMessageControlImpl implements UiMessageControl {
+    private static final long REFRESH_RETRY_DELAY_MILLIS = TimeUnit.SECONDS.toMillis(30);
+
     private final UiMessageService uiMessageService;
     private final LanguageControl languageControl;
 
-    private List<UiMessageDto> uiMessageList;
+    private volatile List<UiMessageDto> uiMessageList = List.of();
+    private volatile long nextRefreshAttemptAt;
 
     @PostConstruct
     public void init() {
-        try {
-            uiMessageList = uiMessageService.getUiMessages();
-        } catch (RuntimeException ignored) {
-            uiMessageList = List.of(
-                    stub("back", "Назад"),
-                    stub("start", "В начало"),
-                    stub("welcome", "Добро пожаловать!"),
-                    stub("main-menu", "Главное меню"),
-                    stub("language_title", "Выбрать язык"),
-                    stub("question_listen", "Выберите раздел в главном меню."),
-                    stub("question_answer", "Выберите язык.")
-            );
-        }
+        refreshMessages();
     }
 
     @Override
     public UiMessageDto getUiMessage(String name) {
+        refreshMessagesIfNeeded();
         return uiMessageList.stream()
                 .filter(ui -> ui.getName().equals(name))
                 .findFirst()
@@ -49,7 +42,8 @@ public class UiMessageControlImpl implements UiMessageControl {
     }
 
     @Override
-    public UiMessageDto getUiMessage(UiMessage name) {
+    public UiMessageDto getUiMessage(UiMessageName name) {
+        refreshMessagesIfNeeded();
         return uiMessageList.stream()
                 .filter(ui -> ui.getName().equals(name.getValue()))
                 .findFirst()
@@ -57,7 +51,9 @@ public class UiMessageControlImpl implements UiMessageControl {
     }
 
     @Override
-    public String getUiMessageText(UiMessage name, String langCode) {
+    @NotNull
+    public String getUiMessageText(UiMessageName name, String langCode) {
+        refreshMessagesIfNeeded();
         UiMessageDto uiMessage = uiMessageList.stream()
                 .filter(ui -> ui.getName().equals(name.getValue()))
                 .findFirst()
@@ -71,7 +67,8 @@ public class UiMessageControlImpl implements UiMessageControl {
     }
 
     @Override
-    public Pair<String, String> getUiMessageNameAndText(UiMessage name, String langCode) {
+    public Pair<String, String> getUiMessageNameAndText(UiMessageName name, String langCode) {
+        refreshMessagesIfNeeded();
         UiMessageDto uiMessage = uiMessageList.stream()
                 .filter(ui -> ui.getName().equals(name.getValue()))
                 .findFirst()
@@ -84,6 +81,33 @@ public class UiMessageControlImpl implements UiMessageControl {
         return Pair.of(name.getValue(), uiMessage.getText().getOrDefault(langCode, MessageUtil.NOT_FOUND_MESSAGE));
     }
 
+    private void refreshMessagesIfNeeded() {
+        if (!shouldRefresh()) {
+            return;
+        }
+
+        synchronized (this) {
+            if (!shouldRefresh()) {
+                return;
+            }
+            refreshMessages();
+        }
+    }
+
+    private boolean shouldRefresh() {
+        return (uiMessageList.isEmpty() || isFallbackMessages(uiMessageList))
+                && System.currentTimeMillis() >= nextRefreshAttemptAt;
+    }
+
+    private boolean isFallbackMessages(List<UiMessageDto> messages) {
+        return messages.stream().allMatch(message -> message.getText().size() == 1 && message.getText().containsKey("ru"));
+    }
+
+    private void refreshMessages() {
+        uiMessageList = uiMessageService.getUiMessages();
+        nextRefreshAttemptAt = System.currentTimeMillis() + REFRESH_RETRY_DELAY_MILLIS;
+    }
+
     private UiMessageDto getErrorMessage(String name) {
         return UiMessageDto.builder()
                 .name(name)
@@ -94,13 +118,6 @@ public class UiMessageControlImpl implements UiMessageControl {
                                 lang -> MessageUtil.NOT_FOUND_MESSAGE)
                         )
                 )
-                .build();
-    }
-
-    private UiMessageDto stub(String name, String text) {
-        return UiMessageDto.builder()
-                .name(name)
-                .text(Map.of("ru", text))
                 .build();
     }
 }

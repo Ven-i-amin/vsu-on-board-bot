@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.UiMessageControl;
@@ -27,65 +26,51 @@ public class LanguageHandler implements MessageStateHandler {
     private final UiMessageControl uiMessageService;
 
     @Override
-    public void handle(SessionDto sessionDto, BotMessageSender sender) {
-        if (sessionDto.getBotState() == BotState.SEND) {
-            sessionDto.setLastMessageId(sender.send(answer(sessionDto)).getMessageId());
-        } else {
-            listen(sessionDto);
-        }
-    }
-
-    private SendMessage answer(SessionDto sessionDto) {
+    public SendMessage answer(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.LISTEN);
         List<LanguageDto> availableLanguages = languageService.getLanguages();
 
-        SendMessage.SendMessageBuilder<?, ?> messageBuilder = SendMessage.builder();
-        messageBuilder.chatId(sessionDto.getChatId());
-
         if (availableLanguages.isEmpty()) {
-            messageBuilder.text("Language list is temporarily unavailable. Please try again later.");
-            return messageBuilder.build();
+            throw new RuntimeException();
         }
 
         String questionText = uiMessageService.getUiMessageText(
-                UiMessage.QUESTION_ANSWER,
+                UiMessageName.QUESTION_ANSWER,
                 sessionDto.getLangCode()
         );
-        messageBuilder.text(questionText);
 
-        List<InlineKeyboardRow> languageColumn = MessageUtil.getInlineButtonColumn(
-                availableLanguages.stream()
-                        .map(languageDto -> Pair.of(languageDto.code(), languageDto.name()))
-                        .toList(),
-                LANGUAGE_ROW_SIZE
-        );
-
+        List<InlineKeyboardRow> languageColumn = getLanguageButtons(availableLanguages);
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup(languageColumn);
-        messageBuilder.replyMarkup(markup);
 
-        return messageBuilder.build();
+        return SendMessage.builder()
+                .chatId(sessionDto.getChatId())
+                .text(questionText)
+                .replyMarkup(markup)
+                .build();
     }
 
-    private void listen(SessionDto sessionDto) {
-        sessionDto.setBotState(BotState.DELETE);
-        sessionDto.setGlobalState(GlobalState.CREATE);
+    @Override
+    public boolean listen(SessionDto sessionDto) {
+        sessionDto.setGlobalState(MainMenuState.CREATE);
 
         List<LanguageDto> availableLanguages = languageService.getLanguages();
         String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
 
         if (availableLanguages.isEmpty() || text == null) {
-            return;
+            return false;
         }
 
-        LanguageDto language = findLanguage(availableLanguages, text);
+        LanguageDto language = getLanguage(availableLanguages, text);
 
         if (language == null) {
-            return;
+            return false;
         }
 
         sessionDto.setLangCode(language.code());
         sessionDto.setMessageState(MessageState.NOTHING);
         userService.updateLangCode(sessionDto.getChatId(), language.code());
+
+        return true;
     }
 
     @Override
@@ -93,10 +78,19 @@ public class LanguageHandler implements MessageStateHandler {
         return MessageState.LANGUAGE;
     }
 
-    private LanguageDto findLanguage(List<LanguageDto> availableLanguages, String code) {
+    private LanguageDto getLanguage(List<LanguageDto> availableLanguages, String code) {
         return availableLanguages.stream()
                 .filter(lang -> lang.code().equals(code))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private List<InlineKeyboardRow> getLanguageButtons(List<LanguageDto> availableLanguages) {
+        return MessageUtil.createInlineButtonColumn(
+                availableLanguages.stream()
+                        .map(languageDto -> Pair.of(languageDto.code(), languageDto.name()))
+                        .toList(),
+                LANGUAGE_ROW_SIZE
+        );
     }
 }

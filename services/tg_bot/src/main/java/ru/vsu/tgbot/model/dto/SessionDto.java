@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.vsu.contract.model.response.UiMessageResponseDto;
-import ru.vsu.tgbot.util.GlobalState;
+import ru.vsu.tgbot.util.MainMenuState;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
 
@@ -28,9 +28,9 @@ public class SessionDto {
     @NotNull
     private MessageState messageState;
     @NotNull
-    private GlobalState globalState;
+    private MainMenuState globalState;
     private GroupDto start;
-    @Builder.Default
+    @NotNull
     private List<GroupDto> groupWindow = new ArrayList<>();
     private List<UiMessageResponseDto> uiMessages;
     private Integer lastMessageId;

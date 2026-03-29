@@ -13,9 +13,11 @@ import ru.vsu.tgbot.model.dto.SessionDto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class MessageUtil {
+    public static String DEFAULT_LANGUAGE_CODE = "ru";
     public static String NOT_FOUND_MESSAGE = "Not Found";
 
     public static String extractUserInput(Update update) {
@@ -53,15 +55,19 @@ public class MessageUtil {
         return null;
     }
 
-    public static GroupDto getCurrentGroup(List<GroupDto> group) {
-        return group.getLast();
-    }
-
     public static GroupDto getGroupByText(String userText, SessionDto sessionDto) {
         return sessionDto.getStart().getInnerGroups().stream()
                 .filter(el -> MessageUtil.isLocalizedGroupTitle(userText, el, sessionDto))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static GroupDto createGroupForQuestion(QuestionDto question) {
+        return GroupDto.builder()
+                .title(Map.of())
+                .questions(List.of(question))
+                .innerGroups(new ArrayList<>())
+                .build();
     }
 
     public static Boolean isLocalizedGroupTitle(String text, GroupDto groupDto, SessionDto sessionDto) {
@@ -108,7 +114,7 @@ public class MessageUtil {
                 .toList();
     }
 
-    public static List<InlineKeyboardRow> getInlineButtonColumn(List<Pair<String, String>> namesAndTexts, int rowSize) {
+    public static List<InlineKeyboardRow> createInlineButtonColumn(List<Pair<String, String>> namesAndTexts, int rowSize) {
         assert rowSize > 0;
 
         List<InlineKeyboardRow> keyboardRows = new ArrayList<>();
@@ -135,7 +141,7 @@ public class MessageUtil {
         return keyboardRows;
     }
 
-    public static List<KeyboardRow> getButtonColumn(List<String> texts, int rowSize) {
+    public static List<KeyboardRow> createButtonColumn(List<String> texts, int rowSize) {
         assert rowSize > 0;
 
         List<KeyboardRow> keyboardRows = new ArrayList<>();

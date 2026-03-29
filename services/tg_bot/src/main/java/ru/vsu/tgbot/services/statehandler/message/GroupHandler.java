@@ -2,24 +2,26 @@ package ru.vsu.tgbot.services.statehandler.message;
 
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
 import ru.vsu.tgbot.services.business.UiMessageControl;
-import ru.vsu.tgbot.util.BotState;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
-import ru.vsu.tgbot.util.UiMessage;
+import ru.vsu.tgbot.util.UiMessageName;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static ru.vsu.tgbot.util.MessageUtil.NOT_FOUND_MESSAGE;
+import static ru.vsu.tgbot.util.MessageUtil.createGroupForQuestion;
 
 @Service
 @AllArgsConstructor
@@ -29,102 +31,69 @@ public class GroupHandler implements MessageStateHandler {
     private final UiMessageControl uiMessageService;
 
     @Override
-    public void handle(SessionDto sessionDto, BotMessageSender sender) {
-        if (sessionDto.getBotState() == BotState.SEND) {
-            SendMessage answer = answer(sessionDto);
-
-            if (answer != null) {
-                sessionDto.setLastMessageId(sender.send(answer(sessionDto)).getMessageId());
-            }
-        } else {
-            listen(sessionDto);
-        }
-    }
-
-    @Override
     public MessageState getState() {
         return MessageState.GROUP;
     }
 
-    private SendMessage answer(SessionDto sessionDto) {
-        if (sessionDto.getGroupWindow().isEmpty()) {
+    @Override
+    public SendMessage answer(SessionDto sessionDto) {
+        List<GroupDto> groupWindow = sessionDto.getGroupWindow();
+
+        if (groupWindow.isEmpty()) {
             sessionDto.setMessageState(MessageState.NOTHING);
 
             return null;
         }
 
-        sessionDto.setBotState(BotState.LISTEN);
-        SendMessage.SendMessageBuilder<?, ?> builder = SendMessage.builder();
+        Map<String, String> groupTitle = groupWindow.getLast().getTitle();
 
-        builder.chatId(sessionDto.getChatId());
-        builder.text(sessionDto.getGroupWindow().getLast().getTitle().get(sessionDto.getLangCode()));
+        String translatedTitle = groupTitle.getOrDefault(sessionDto.getLangCode(), NOT_FOUND_MESSAGE);
 
-        List<InlineKeyboardRow> column = MessageUtil.getInlineButtonColumn(
+        List<InlineKeyboardRow> column = MessageUtil.createInlineButtonColumn(
                 getAllTitles(sessionDto),
                 GROUP_ROW_SIZE
         );
 
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(column);
-
-        return builder.replyMarkup(inlineKeyboardMarkup).build();
+        return SendMessage.builder()
+                .chatId(sessionDto.getChatId())
+                .text(translatedTitle)
+                .replyMarkup(new InlineKeyboardMarkup(column))
+                .build();
     }
 
-    private void listen(SessionDto sessionDto) {
-        sessionDto.setBotState(BotState.DELETE);
+    @Override
+    public boolean listen(SessionDto sessionDto) {
+        String userInput = MessageUtil.extractUserInput(sessionDto.getUpdate());
+        List<GroupDto> groupWindow = sessionDto.getGroupWindow();
 
-        String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
-        if (text == null) {
-            sessionDto.setBotState(BotState.LISTEN);
-            return;
+        if (userInput == null || groupWindow.isEmpty()) {
+            return false;
         }
 
-        if (sessionDto.getGroupWindow().isEmpty()) {
-            sessionDto.setMessageState(MessageState.NOTHING);
-            return;
-        }
-
-        GroupDto currentGroup = MessageUtil.getCurrentGroup(sessionDto.getGroupWindow());
-
-        GroupDto selectedGroup = currentGroup.getInnerGroups().stream()
-                .filter(gr -> gr.getName().equals(text))
-                .findFirst()
-                .orElse(null);
+        GroupDto currentGroup = groupWindow.getLast();
+        GroupDto selectedGroup = getSelectedGroup(currentGroup,  userInput);
 
         if (selectedGroup != null) {
             groupWindowService.moveForward(sessionDto, selectedGroup);
-            return;
+            return true;
         }
 
-        QuestionDto selectedQuestion = currentGroup.getQuestions().stream()
-                .filter(question -> question.getName().equals(text))
-                .findFirst()
-                .orElse(null);
+        QuestionDto selectedQuestion = getSelectedQuestion(currentGroup, userInput);
 
         if (selectedQuestion != null) {
-            GroupDto questionGroup = GroupDto.builder()
-                    .title(Map.of())
-                    .questions(List.of(selectedQuestion))
-                    .innerGroups(new ArrayList<>())
-                    .parentName(currentGroup.getParentName())
-                    .build();
+            GroupDto questionGroup = createGroupForQuestion(selectedQuestion);
 
             groupWindowService.moveForward(sessionDto, questionGroup);
             sessionDto.setMessageState(MessageState.QUESTION);
-            return;
+            return true;
         }
 
-        if (text.equals(UiMessage.BACK.getValue())) {
+        if (userInput.equals(UiMessageName.BACK.getValue())) {
             groupWindowService.moveBackward(sessionDto);
-
-            if (sessionDto.getGroupWindow().isEmpty()) {
-                sessionDto.setMessageState(MessageState.NOTHING);
-                return;
-            }
-
-            return;
+            return true;
         }
 
-        sessionDto.setBotState(BotState.LISTEN);
+        return false;
     }
 
     private List<Pair<String, String>> getAllTitles(SessionDto sessionDto) {
@@ -134,10 +103,26 @@ public class GroupHandler implements MessageStateHandler {
         nameAndText.addAll(MessageUtil.getLocalizedGroupNameAndTitles(currentGroup, sessionDto));
         nameAndText.addAll(MessageUtil.getLocalizedQuestionNameAndTitles(currentGroup, sessionDto));
 
-        Pair<String, String> back = uiMessageService.getUiMessageNameAndText(UiMessage.BACK, sessionDto.getLangCode());
+        Pair<String, String> back = uiMessageService.getUiMessageNameAndText(UiMessageName.BACK, sessionDto.getLangCode());
 
         nameAndText.add(back);
 
         return nameAndText;
+    }
+
+    @Nullable
+    private GroupDto getSelectedGroup(GroupDto currentGroup, String userInput) {
+        return currentGroup.getInnerGroups().stream()
+                .filter(gr -> gr.getName().equals(userInput))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Nullable
+    private static QuestionDto getSelectedQuestion(GroupDto currentGroup, String userInput) {
+        return currentGroup.getQuestions().stream()
+                .filter(question -> question.getName().equals(userInput))
+                .findFirst()
+                .orElse(null);
     }
 }
