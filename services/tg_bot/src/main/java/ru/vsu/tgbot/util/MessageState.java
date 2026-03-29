@@ -6,5 +6,5 @@ public enum MessageState {
     WELCOME,
     GROUP,
     QUESTION,
-    ERROR
+    SELECT_OTHER_LANGUAGE
 }

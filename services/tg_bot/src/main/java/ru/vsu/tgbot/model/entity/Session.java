@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.tgbot.model.dto.GroupDto;
-import ru.vsu.tgbot.util.GlobalState;
+import ru.vsu.tgbot.util.MainMenuState;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.BotState;
 
@@ -31,7 +30,7 @@ public class Session {
     @NotNull
     private MessageState messageState;
     @NotNull
-    private GlobalState globalState;
+    private MainMenuState globalState;
     private GroupDto start;
     @NotNull
     @Builder.Default

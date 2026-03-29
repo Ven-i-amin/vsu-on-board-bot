@@ -7,10 +7,10 @@ spring:
 core:
   base-url: ${CORE_BASE_URL:http://localhost:8081}
 
-#telegram:
-#  bot:
-#    mode: ${TELEGRAM_BOT_MODE:"${BOT_MODE}"}
-#    token: ${TELEGRAM_BOT_TOKEN}
+telegram:
+  bot:
+    mode: ${TELEGRAM_BOT_MODE:"${BOT_MODE}"}
+    token: ${TELEGRAM_BOT_TOKEN}
 #    webhook-url: ${TELEGRAM_WEBHOOK_URL:}
 #    webhook-path: ${TELEGRAM_WEBHOOK_PATH:/telegram/webhook}
 #    secret-token: ${TELEGRAM_WEBHOOK_SECRET:}

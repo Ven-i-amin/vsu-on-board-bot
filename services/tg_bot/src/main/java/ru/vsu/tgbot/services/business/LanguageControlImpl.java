@@ -1,32 +1,32 @@
 package ru.vsu.tgbot.services.business;
 
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.services.core.LanguageService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class LanguageControlImpl implements LanguageControl {
+    private static final long REFRESH_RETRY_DELAY_MILLIS = TimeUnit.SECONDS.toMillis(30);
+
     private final LanguageService languageService;
     private final List<LanguageDto> languageList = new ArrayList<>();
+    private volatile long nextRefreshAttemptAt;
 
     @PostConstruct
     private void init() {
-        try {
-            languageList.addAll(languageService.getLanguages());
-        } catch (RuntimeException ignored) {
-            languageList.add(new LanguageDto("ru", "Русский"));
-        }
+        refreshLanguages();
     }
-
 
     @Override
     public LanguageDto getLanguage(String langCode) {
+        refreshLanguagesIfNeeded();
         return languageList.stream()
                 .filter(lang -> lang.code().equals(langCode))
                 .findFirst()
@@ -35,6 +35,32 @@ public class LanguageControlImpl implements LanguageControl {
 
     @Override
     public List<LanguageDto> getLanguages() {
+        refreshLanguagesIfNeeded();
         return languageList.stream().toList();
+    }
+
+    private void refreshLanguagesIfNeeded() {
+        if (!shouldRefresh()) {
+            return;
+        }
+
+        synchronized (languageList) {
+            if (!shouldRefresh()) {
+                return;
+            }
+            refreshLanguages();
+        }
+    }
+
+    private boolean shouldRefresh() {
+        boolean fallbackOnly = languageList.size() == 1 && "ru".equals(languageList.getFirst().code());
+        return (languageList.isEmpty() || fallbackOnly) && System.currentTimeMillis() >= nextRefreshAttemptAt;
+    }
+
+    private void refreshLanguages() {
+        List<LanguageDto> languages = languageService.getLanguages();
+        languageList.clear();
+        languageList.addAll(languages);
+        nextRefreshAttemptAt = System.currentTimeMillis() + REFRESH_RETRY_DELAY_MILLIS;
     }
 }

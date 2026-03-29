@@ -1,4 +1,4 @@
-package ru.vsu.tgbot.components;
+package ru.vsu.tgbot.components.registry;
 
 import org.springframework.stereotype.Component;
 import ru.vsu.tgbot.services.statehandler.message.MessageStateHandler;
@@ -10,12 +10,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class SessionStateRegistry {
+public class MessageHandlerRegistry {
     private final Map<MessageState, MessageStateHandler> stateHandlers;
 
-    public SessionStateRegistry(List<MessageStateHandler> handlers) {
-        this.stateHandlers = handlers
-                .stream()
+    public MessageHandlerRegistry(List<MessageStateHandler> handlers) {
+        this.stateHandlers = handlers.stream()
                 .collect(
                         Collectors.toMap(
                                 MessageStateHandler::getState,
