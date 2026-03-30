@@ -38,7 +38,7 @@ public class QueryServiceImpl implements QueryService {
         SessionDto sessionDto = getSessionDto(chatId, update);
 
         try {
-            Query(sessionDto);
+            mainLoop(sessionDto);
         } catch (RuntimeException ex) {
             log.warn("Failed to process Telegram update for chat {}", chatId, ex);
             botMessageSender.send(SendMessage.builder()
@@ -70,10 +70,12 @@ public class QueryServiceImpl implements QueryService {
         return sessionDto;
     }
 
-    private void Query(SessionDto sessionDto) {
+    private void mainLoop(SessionDto sessionDto) {
         do {
             BotStateHandler handler = botHandlerRegistry.getHandler(sessionDto.getBotState());
             handler.handle(sessionDto, botMessageSender);
+
+            log.info(sessionDto.toString());
         } while (sessionDto.getBotState() != BotState.LISTEN);
 
         sessionService.saveSession(sessionDto);

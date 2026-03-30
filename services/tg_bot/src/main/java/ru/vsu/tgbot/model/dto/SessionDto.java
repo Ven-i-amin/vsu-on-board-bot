@@ -1,9 +1,6 @@
 package ru.vsu.tgbot.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.annotation.Id;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -19,6 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class SessionDto {
     @Id
     private Long chatId;

@@ -44,7 +44,7 @@ public class WelcomeHandler implements MessageStateHandler {
 
     @Override
     public boolean listen(SessionDto sessionDto) {
-        return true;
+        return false;
     }
 
     @Override
