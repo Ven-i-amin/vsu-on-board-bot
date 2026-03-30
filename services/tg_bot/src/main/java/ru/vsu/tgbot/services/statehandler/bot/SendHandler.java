@@ -26,7 +26,7 @@ public class SendHandler implements BotStateHandler {
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
-        sessionDto.setBotState(BotState.DELETE);
+        sessionDto.setBotState(BotState.LISTEN);
 
         if (sessionDto.getGlobalState() == MainMenuState.CREATE) {
             SendMessage mainMenu = globalHandler.create(sessionDto);

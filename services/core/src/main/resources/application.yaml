@@ -1,7 +1,18 @@
 spring:
-
   mongodb:
-    uri: mongodb://${MONGO_WAY}:${MONGO_PORT}/${MONGO_NAME}
+    database: ${MONGO_NAME:foreign_bot}
+    host: ${MONGO_WAY:mongo}
+    port: ${MONGO_PORT:27017}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
 
 server:
-  port: ${CORE_PORT}
+  port: ${CORE_PORT:8081}

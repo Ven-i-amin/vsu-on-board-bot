@@ -23,6 +23,8 @@ public class DeleteHandler implements BotStateHandler {
                         .build()
         );
 
+        sessionDto.setLastMessageId(null);
+
         sessionDto.setBotState(BotState.SEND);
     }
 

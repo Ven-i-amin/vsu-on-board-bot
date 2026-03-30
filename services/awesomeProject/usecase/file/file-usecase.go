@@ -1,20 +1,25 @@
 package file
 
-import "os"
+import (
+	"os"
+)
 
-type FileUsecase interface {
-	GetFile(filename string) *string
-	SaveFile(filename string, data string)
+type IFileUsecase interface {
+	GetFile(filename string) (string, error)
+	SaveFile(filename string, data string) error
 }
 
-type fileUsecase struct {
-
+type FileUseCase struct {
 }
 
-func (f fileUsecase) GetFile(filename string) *string {
+func (f *FileUseCase) GetFile(filename string) (string, error) {
 	data, err := os.ReadFile(filename + ".txt")
 
-	if err != nil {
-		return nil
-	}
+	return string(data), err
+}
+
+func (f *FileUseCase) SaveFile(filename string, data string) error {
+	err := os.WriteFile(filename+".txt", []byte(data), 0644)
+
+	return err
 }
