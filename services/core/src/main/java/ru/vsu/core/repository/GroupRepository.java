@@ -136,4 +136,7 @@ public interface GroupRepository extends MongoRepository<Group, String> {
     })
     List<GroupNodeDto> findTreeByName(String name, int depth);
 
+    void deleteByName(String name);
+
+    void deleteByParentName(String parentName);
 }

@@ -9,4 +9,10 @@ import java.util.Optional;
 public interface QuestionRepository extends MongoRepository<Question, String> {
     List<Question> findByGroupName(String groupName);
     Optional<Question> findByGroupNameAndName(String groupName, String name);
+
+    Optional<Question> findByName(String name);
+
+    void deleteByName(String name);
+
+    void deleteByGroupName(String groupName);
 }

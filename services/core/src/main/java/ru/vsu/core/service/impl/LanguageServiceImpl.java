@@ -7,6 +7,7 @@ import ru.vsu.core.component.mapper.LanguageMapper;
 import ru.vsu.core.model.dto.LanguageDto;
 import ru.vsu.core.repository.LanguageRepository;
 import ru.vsu.core.service.LanguageService;
+import ru.vsu.core.util.LocalizationUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,10 @@ public class LanguageServiceImpl implements LanguageService {
 
     @Override
     public LanguageDto save(LanguageDto language) {
+        if (!LocalizationUtil.hasDefaultLanguage(language.name())) {
+            throw new IllegalArgumentException("Language name must contain russian localization");
+        }
+
         LanguageDto savedLanguage = languageMapper.toDto(languageRepository.save(languageMapper.toEntity(language)));
         languageCache.put(savedLanguage.code(), savedLanguage);
         return savedLanguage;

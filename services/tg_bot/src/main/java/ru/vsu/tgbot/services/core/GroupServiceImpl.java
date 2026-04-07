@@ -34,7 +34,7 @@ public class GroupServiceImpl implements GroupService {
         try {
             GroupDto group = coreClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/group/name/{groupName}")
+                            .path("/group/{groupName}")
                             .queryParam("depth", depth)
                             .build(groupName)
                     )
@@ -54,7 +54,7 @@ public class GroupServiceImpl implements GroupService {
         try {
             List<GroupDto> groups = coreClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/group/name/{groupName}/inner")
+                            .path("/group/{groupName}/inner")
                             .build(groupName)
                     )
                     .retrieve()
@@ -72,7 +72,7 @@ public class GroupServiceImpl implements GroupService {
     public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupNames, String language) {
         try {
             List<GroupDto> groups = coreClient.post()
-                    .uri("/group/name/list")
+                    .uri("/group/list")
                     .bodyValue(groupNames)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})

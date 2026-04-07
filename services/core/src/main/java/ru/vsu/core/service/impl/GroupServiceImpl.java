@@ -2,31 +2,39 @@ package ru.vsu.core.service.impl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.core.component.mapper.GroupMapper;
 import ru.vsu.core.model.dto.GroupDto;
 import ru.vsu.core.model.dto.GroupNodeDto;
 import ru.vsu.core.model.dto.GroupTreeDto;
 import ru.vsu.core.model.entity.Group;
+import ru.vsu.core.model.request.GroupRequest;
+import ru.vsu.core.model.request.GroupTitleRequest;
 import ru.vsu.core.repository.GroupRepository;
 import ru.vsu.core.service.GroupService;
 import ru.vsu.core.service.LanguageService;
+import ru.vsu.core.service.QuestionService;
+import ru.vsu.core.util.LocalizationUtil;
+import ru.vsu.core.util.TransliterationUtil;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static ru.vsu.core.util.GroupTreeUtil.*;
+import static ru.vsu.core.util.LocalizationUtil.DEFAULT_LANGUAGE_CODE;
+import static ru.vsu.core.util.LocalizationUtil.localize;
 
 @Service
 @AllArgsConstructor
 public class GroupServiceImpl implements GroupService {
     private static final String ROOT_GROUP_NAME = "main-menu";
-    private static final String DEFAULT_LANGUAGE_CODE = "ru";
     private static final String ROOT_TITLE_RU = "Главное меню";
 
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
-    private final LanguageService languageService;
+    private final QuestionService questionService;
 
     @Override
     public List<GroupDto> findAll() {
@@ -62,13 +70,62 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public void save(GroupRequest group) {
+        if (group.parentName() == null) {
+            throw new IllegalArgumentException("Group must have a parent");
+        }
+
+        if (LocalizationUtil.hasDefaultLanguage(group.title())) {
+            throw new IllegalArgumentException("Group must have a default language");
+        }
+
+        String russianTitle = localize(group.title(), DEFAULT_LANGUAGE_CODE);
+        Group savingGroup = groupMapper.toEntity(group, russianTitle);
+        saveWithUniqueName(savingGroup);
+    }
+
+    @Override
+    public void updateTitle(String name, GroupTitleRequest groupTitle) {
+        Group group = groupRepository.findById(name).orElseThrow(IllegalArgumentException::new);
+
+        group.setTitle(groupTitle.title());
+
+        String oldGroupName = localize(group.getTitle(), DEFAULT_LANGUAGE_CODE);
+        String newGroupName = localize(groupTitle.title(), DEFAULT_LANGUAGE_CODE);
+
+        if (!oldGroupName.equals(newGroupName)) {
+            group.setName(TransliterationUtil.transliterate(newGroupName));
+        }
+
+        saveWithUniqueName(group);
+    }
+
+    @Override
+    @Transactional
     public void deleteById(String groupId) {
-        GroupDto group = findById(groupId);
-        if (group != null && group.parentName() == null) {
+        Group group = groupRepository.findByName(groupId).orElseThrow(IllegalArgumentException::new);
+        if (group.getParentName() == null) {
             throw new IllegalStateException("Root group cannot be deleted");
         }
 
-        groupRepository.deleteById(groupId);
+        String groupName = group.getName();
+
+        groupRepository.deleteByName(groupName);
+        groupRepository.deleteByParentName(groupName);
+        questionService.deleteByGroupName(groupName);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByName(String groupName) {
+        Group group = groupRepository.findByName(groupName).orElseThrow(IllegalArgumentException::new);
+        if (group.getParentName() == null) {
+            throw new IllegalStateException("Root group cannot be deleted");
+        }
+
+        groupRepository.deleteByName(groupName);
+        groupRepository.deleteByParentName(groupName);
+        questionService.deleteByGroupName(groupName);
     }
 
     @Override
@@ -169,5 +226,20 @@ public class GroupServiceImpl implements GroupService {
         );
 
         return title;
+    }
+
+    private Group saveWithUniqueName(Group group) {
+        String baseName = group.getName();
+        int suffix = 0;
+
+        while (true) {
+            try {
+                return groupRepository.save(group);
+            } catch (DuplicateKeyException exception) {
+                suffix++;
+            }
+
+            group.setName(suffix == 0 ? baseName : baseName + "-" + suffix);
+        }
     }
 }

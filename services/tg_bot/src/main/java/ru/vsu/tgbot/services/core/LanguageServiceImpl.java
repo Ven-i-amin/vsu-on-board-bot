@@ -11,6 +11,7 @@ import ru.vsu.tgbot.components.mapper.CoreResponseMapper;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -37,6 +38,6 @@ public class LanguageServiceImpl implements LanguageService {
     }
 
     private List<LanguageDto> fallbackLanguages() {
-        return List.of(new LanguageDto("ru", "Русский"));
+        return List.of(new LanguageDto("ru", Map.of("ru", "Русский")));
     }
 }

@@ -98,7 +98,7 @@ public class OtherLanguageHandler implements MessageStateHandler {
     ) {
         return languages.stream()
                 .filter(lang -> questionKeys.contains(lang.code()))
-                .map(lang -> Pair.of(lang.code(), lang.name()))
+                .map(lang -> Pair.of(lang.code(), lang.name().get(lang.code())))
                 .toList();
     }
 }
