@@ -1,8 +1,9 @@
 package ru.vsu.core.service;
 
 import ru.vsu.core.model.dto.GroupDto;
-import ru.vsu.core.model.dto.GroupNodeDto;
 import ru.vsu.core.model.dto.GroupTreeDto;
+import ru.vsu.core.model.request.GroupRequest;
+import ru.vsu.core.model.request.GroupTitleRequest;
 
 import java.util.List;
 
@@ -15,7 +16,12 @@ public interface GroupService {
 
     GroupDto save(GroupDto group);
 
+    void save(GroupRequest group);
+
+    void updateTitle(String name, GroupTitleRequest groupTitle);
+
     void deleteById(String groupId);
+    void deleteByName(String groupName);
 
     List<GroupDto> findByParentName(String parentName);
 

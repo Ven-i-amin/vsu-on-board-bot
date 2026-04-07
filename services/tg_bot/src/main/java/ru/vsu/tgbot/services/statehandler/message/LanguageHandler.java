@@ -88,7 +88,10 @@ public class LanguageHandler implements MessageStateHandler {
     private List<InlineKeyboardRow> getLanguageButtons(List<LanguageDto> availableLanguages) {
         return MessageUtil.createInlineButtonColumn(
                 availableLanguages.stream()
-                        .map(languageDto -> Pair.of(languageDto.code(), languageDto.name()))
+                        .map(languageDto -> Pair.of(
+                                languageDto.code(),
+                                languageDto.name().get(languageDto.code()))
+                        )
                         .toList(),
                 LANGUAGE_ROW_SIZE
         );

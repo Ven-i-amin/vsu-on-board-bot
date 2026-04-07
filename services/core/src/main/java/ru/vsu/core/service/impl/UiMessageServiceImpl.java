@@ -4,8 +4,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.vsu.core.component.mapper.UiMessageMapper;
 import ru.vsu.core.model.dto.UiMessageDto;
+import ru.vsu.core.model.entity.UiMessage;
+import ru.vsu.core.model.request.UiMessageUpdateRequest;
 import ru.vsu.core.repository.UiMessageRepository;
 import ru.vsu.core.service.UiMessageService;
+import ru.vsu.core.util.LocalizationUtil;
 
 import java.util.List;
 
@@ -30,6 +33,20 @@ public class UiMessageServiceImpl implements UiMessageService {
     @Override
     public UiMessageDto save(UiMessageDto uiMessage) {
         return uiMessageMapper.toDto(uiMessageRepository.save(uiMessageMapper.toEntity(uiMessage)));
+    }
+
+
+    @Override
+    public void update(String name, UiMessageUpdateRequest uiMessage) {
+        if (!LocalizationUtil.hasDefaultLanguage(uiMessage.text())) {
+            throw new IllegalArgumentException();
+        }
+
+        UiMessage message = uiMessageRepository.findByName(name).orElseThrow(IllegalArgumentException::new);
+
+        message.setText(uiMessage.text());
+
+        uiMessageRepository.save(message);
     }
 
     @Override

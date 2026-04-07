@@ -9,6 +9,7 @@ import ru.vsu.core.model.dto.QuestionLocalizedDto;
 import ru.vsu.core.model.dto.GroupTreeDto;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.entity.Question;
+import ru.vsu.core.model.request.QuestionCreateRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,8 @@ public interface QuestionMapper {
 
     @org.mapstruct.Mapping(source = "parent", target = "groupName")
     Question toEntity(QuestionDto questionDto);
+
+    Question toEntity(QuestionCreateRequest question);
 
     List<Question> toEntityList(List<QuestionDto> questionDtos);
 

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import ru.vsu.core.model.dto.LanguageDto;
 import ru.vsu.core.service.LanguageService;
 
+import java.util.Map;
+
 @Component
 @Order(10)
 @RequiredArgsConstructor
@@ -24,11 +26,23 @@ public class LanguageBootstrap implements ApplicationRunner {
         }
 
         languageService.save(
-                new LanguageDto(DEFAULT_LANGUAGE_CODE, DEFAULT_LANGUAGE_NAME)
+                new LanguageDto(
+                        DEFAULT_LANGUAGE_CODE,
+                        Map.of(
+                                "ru", DEFAULT_LANGUAGE_NAME,
+                                "en", "Russian"
+                        )
+                )
         );
 
         languageService.save(
-                new LanguageDto("en", "English")
+                new LanguageDto(
+                        "en",
+                        Map.of(
+                                "ru", "Английский",
+                                "en", "English"
+                        )
+                )
         );
     }
 }

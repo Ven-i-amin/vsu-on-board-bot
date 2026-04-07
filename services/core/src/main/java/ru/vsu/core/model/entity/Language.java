@@ -8,6 +8,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,5 +20,5 @@ public class Language {
     private String id;
     @Indexed(unique = true)
     private String code;
-    private String name;
+    private Map<String, String> name;
 }
