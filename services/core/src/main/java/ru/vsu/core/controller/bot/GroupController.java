@@ -1,4 +1,4 @@
-package ru.vsu.core.controller;
+package ru.vsu.core.controller.internal;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,19 +30,7 @@ public class GroupController {
         return group;
     }
 
-    @GetMapping("/name/{groupName}")
-    public GroupResponseDto getGroupByName(
-            @PathVariable String groupName,
-            @RequestParam(value = "depth", defaultValue = "0") Integer depth
-    ) {
-        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(groupName, depth));
-        if (group == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return group;
-    }
-
-    @GetMapping("/name/{groupName}/inner")
+    @GetMapping("/{groupName}/inner")
     public List<GroupResponseDto> getInnerGroup(@PathVariable String groupName) {
         GroupDto group = groupService.findByName(groupName);
         if (group == null) {
@@ -50,13 +38,6 @@ public class GroupController {
         }
 
         return groupService.findByParentName(groupName).stream()
-                .map(responseMapper::toShallowResponse)
-                .toList();
-    }
-
-    @PostMapping("/name/list")
-    public List<GroupResponseDto> getInnerGroupsForEachGroup(@RequestBody List<String> groupNames) {
-        return groupService.findByParentNames(groupNames).stream()
                 .map(responseMapper::toShallowResponse)
                 .toList();
     }
@@ -73,6 +54,13 @@ public class GroupController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return group;
+    }
+
+    @PostMapping("/list")
+    public List<GroupResponseDto> getInnerGroupsForEachGroup(@RequestBody List<String> groupNames) {
+        return groupService.findByParentNames(groupNames).stream()
+                .map(responseMapper::toShallowResponse)
+                .toList();
     }
 
     @PostMapping("/start")

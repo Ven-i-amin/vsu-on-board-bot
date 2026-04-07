@@ -1,4 +1,4 @@
-package ru.vsu.core.controller;
+package ru.vsu.core.controller.internal;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
