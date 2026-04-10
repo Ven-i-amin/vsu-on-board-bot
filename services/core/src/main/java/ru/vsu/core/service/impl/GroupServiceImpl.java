@@ -1,8 +1,15 @@
 package ru.vsu.core.service.impl;
 
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.bson.Document;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.core.component.mapper.GroupMapper;
 import ru.vsu.core.model.dto.GroupDto;
@@ -13,12 +20,12 @@ import ru.vsu.core.model.request.GroupRequest;
 import ru.vsu.core.model.request.GroupTitleRequest;
 import ru.vsu.core.repository.GroupRepository;
 import ru.vsu.core.service.GroupService;
-import ru.vsu.core.service.LanguageService;
 import ru.vsu.core.service.QuestionService;
 import ru.vsu.core.util.LocalizationUtil;
 import ru.vsu.core.util.TransliterationUtil;
 
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +42,7 @@ public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
     private final QuestionService questionService;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public List<GroupDto> findAll() {
@@ -70,40 +78,56 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void save(GroupRequest group) {
+    public GroupDto save(GroupRequest group) {
         if (group.parentName() == null) {
             throw new IllegalArgumentException("Group must have a parent");
         }
 
-        if (LocalizationUtil.hasDefaultLanguage(group.title())) {
+        if (!LocalizationUtil.hasDefaultLanguage(group.title())) {
             throw new IllegalArgumentException("Group must have a default language");
         }
 
         String russianTitle = localize(group.title(), DEFAULT_LANGUAGE_CODE);
         Group savingGroup = groupMapper.toEntity(group, russianTitle);
-        saveWithUniqueName(savingGroup);
+        return saveWithUniqueName(savingGroup);
     }
 
     @Override
-    public void updateTitle(String name, GroupTitleRequest groupTitle) {
-        Group group = groupRepository.findById(name).orElseThrow(IllegalArgumentException::new);
+    @Transactional
+    public GroupDto updateTitle(String name, GroupTitleRequest groupTitle) {
+        if (!LocalizationUtil.hasDefaultLanguage(groupTitle.title())) {
+            throw new IllegalArgumentException("Group must have a default language");
+        }
 
-        group.setTitle(groupTitle.title());
+        Group group = groupRepository.findByName(name).orElseThrow(IllegalArgumentException::new);
 
         String oldGroupName = localize(group.getTitle(), DEFAULT_LANGUAGE_CODE);
         String newGroupName = localize(groupTitle.title(), DEFAULT_LANGUAGE_CODE);
+
+        group.setTitle(groupTitle.title());
 
         if (!oldGroupName.equals(newGroupName)) {
             group.setName(TransliterationUtil.transliterate(newGroupName));
         }
 
-        saveWithUniqueName(group);
+        GroupDto savedGroup = saveWithUniqueName(group);
+
+        if (!name.equals(savedGroup.name())) {
+            Query query = new Query(Criteria.where("parentName").is(name));
+            Update update = new Update().set("parentName", savedGroup.name());
+
+            mongoTemplate.updateMulti(query, update, Group.class);
+
+            questionService.updateGroupName(name, savedGroup.name());
+        }
+
+        return savedGroup;
     }
 
     @Override
     @Transactional
     public void deleteById(String groupId) {
-        Group group = groupRepository.findByName(groupId).orElseThrow(IllegalArgumentException::new);
+        Group group = groupRepository.findById(groupId).orElseThrow(IllegalArgumentException::new);
         if (group.getParentName() == null) {
             throw new IllegalStateException("Root group cannot be deleted");
         }
@@ -151,7 +175,7 @@ public class GroupServiceImpl implements GroupService {
                 .or(() -> roots.stream().findFirst())
                 .orElse(null);
 
-        return root == null ? null : groupMapper.toDto(root);
+        return groupMapper.toDto(root);
     }
 
     @Override
@@ -177,24 +201,13 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public GroupTreeDto findTreeById(String groupId, int depth) {
-        List<GroupNodeDto> nodes = groupRepository.findTreeNodeByGroupId(groupId, depth);
-
-        if (nodes == null || nodes.isEmpty()) {
-            return null;
-        }
-
-        GroupNodeDto root = findRootById(nodes, groupId);
-        nodes.remove(root);
-
-        return buildTree(root, nodes);
-    }
-
-    @Override
     public GroupTreeDto findTreeByName(String name, int depth) {
-        List<GroupNodeDto> nodes = groupRepository.findTreeByName(name, depth);
+        Aggregation aggregation = getTreeAggregation(name, depth);
+        List<GroupNodeDto> nodes = new ArrayList<>(
+                mongoTemplate.aggregate(aggregation, "groups", GroupNodeDto.class).getMappedResults()
+        );
 
-        if (nodes == null || nodes.isEmpty()) {
+        if (nodes.isEmpty()) {
             return null;
         }
 
@@ -202,14 +215,6 @@ public class GroupServiceImpl implements GroupService {
         nodes.remove(root);
 
         return buildTree(root, nodes);
-    }
-
-    public List<GroupNodeDto> findNodeById(String groupId, int depth) {
-        return groupRepository.findTreeNodeByGroupId(groupId, depth);
-    }
-
-    public List<GroupNodeDto> findNodeByName(String name, int depth) {
-        return groupRepository.findTreeByName(name, depth);
     }
 
     private Map<String, String> buildRootTitle() {
@@ -228,18 +233,99 @@ public class GroupServiceImpl implements GroupService {
         return title;
     }
 
-    private Group saveWithUniqueName(Group group) {
+    private GroupDto saveWithUniqueName(Group group) {
         String baseName = group.getName();
         int suffix = 0;
-
+        
         while (true) {
             try {
-                return groupRepository.save(group);
+                return groupMapper.toDto(groupRepository.save(group));
             } catch (DuplicateKeyException exception) {
                 suffix++;
             }
 
-            group.setName(suffix == 0 ? baseName : baseName + "-" + suffix);
+            group.setName(baseName + "-" + suffix);
         }
+    }
+    
+    private Aggregation getTreeAggregation(String name, int depth) {
+        return Aggregation.newAggregation(
+
+                // $match
+                Aggregation.match(Criteria.where("name").is(name)),
+
+                // $graphLookup
+                context -> new Document("$graphLookup",
+                        new Document("from", "groups")
+                                .append("startWith", "$name")
+                                .append("connectFromField", "name")
+                                .append("connectToField", "parentName")
+                                .append("as", "innerGroups")
+                                .append("maxDepth", depth)
+                                .append("depthField", "level")
+                ),
+
+                // $addFields allGroups
+                context -> new Document("$addFields",
+                        new Document("allGroups",
+                                new Document("$concatArrays",
+                                        List.of(List.of("$$ROOT"), "$innerGroups")
+                                )
+                        )
+                ),
+
+                // $unwind
+                Aggregation.unwind("allGroups"),
+
+                // $replaceRoot
+                context -> new Document("$replaceRoot",
+                        new Document("newRoot", "$allGroups")
+                ),
+
+                // level default
+                context -> new Document("$addFields",
+                        new Document("level",
+                                new Document("$ifNull", List.of("$level", -1))
+                        )
+                ),
+
+                // $lookup questions
+                context -> new Document("$lookup",
+                        new Document("from", "questions")
+                                .append("localField", "name")
+                                .append("foreignField", "groupName")
+                                .append("as", "questions")
+                ),
+
+                // $project
+                context -> new Document("$project",
+                        new Document("_id", 0)
+                                .append("groupId", "$_id")
+                                .append("name", 1)
+                                .append("title", 1)
+                                .append("parentName", 1)
+                                .append("level", 1)
+                                .append("questions",
+                                        new Document("$map",
+                                                new Document("input", "$questions")
+                                                        .append("as", "question")
+                                                        .append("in",
+                                                                new Document("questionId", "$$question._id")
+                                                                        .append("name", "$$question.name")
+                                                                        .append("parent", "$$question.groupName")
+                                                                        .append("title", "$$question.title")
+                                                                        .append("text", "$$question.text")
+                                                        )
+                                        )
+                                )
+                ),
+
+                // $sort
+                Aggregation.sort(Sort.by(
+                        Sort.Order.asc("level"),
+                        Sort.Order.asc("parentName"),
+                        Sort.Order.asc("name")
+                ))
+        );
     }
 }

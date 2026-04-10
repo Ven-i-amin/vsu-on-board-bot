@@ -5,22 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Map;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document("questions")
-public class Question {
+@Document("admins")
+public class Admin {
     @Id
-    private String questionId;
-    private String name;
-    private String groupName;
-    private Map<String, String> title;
-    private Map<String, String> text;
-    @Builder.Default
-    private Integer using = 0;
+    private String adminId;
+    @Indexed(unique = true)
+    private String email;
+    private String passwordHash;
 }

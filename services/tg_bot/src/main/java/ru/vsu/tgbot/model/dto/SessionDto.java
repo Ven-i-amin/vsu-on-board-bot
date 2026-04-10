@@ -29,6 +29,7 @@ public class SessionDto {
     private MainMenuState globalState;
     private GroupDto start;
     @NotNull
+    @Builder.Default
     private List<GroupDto> groupWindow = new ArrayList<>();
     private List<UiMessageResponseDto> uiMessages;
     private Integer lastMessageId;

@@ -1,11 +1,8 @@
 package ru.vsu.core.controller.api;
 
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import ru.vsu.contract.model.response.UiMessageResponseDto;
-import ru.vsu.core.component.mapper.ResponseMapper;
+import ru.vsu.core.component.mapper.UiMessageMapper;
 import ru.vsu.core.model.dto.UiMessageDto;
 import ru.vsu.core.model.request.UiMessageUpdateRequest;
 import ru.vsu.core.service.UiMessageService;
@@ -13,33 +10,27 @@ import ru.vsu.core.service.UiMessageService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/group")
+@RequestMapping("/api/ui-message")
+@CrossOrigin(origins = "http://localhost:5173")
 @AllArgsConstructor
 public class UiMessageApiController {
     private final UiMessageService uiMessageService;
-    private final ResponseMapper responseMapper;
 
     @GetMapping
-    public List<UiMessageResponseDto> getUiMessages() {
-        return uiMessageService.findAll().stream()
-                .map(responseMapper::toResponse)
-                .toList();
+    public List<UiMessageDto> getUiMessages() {
+        return uiMessageService.findAll();
     }
 
     @GetMapping("/{name}")
-    public UiMessageResponseDto getUiMessage(@PathVariable String name) {
-        UiMessageDto uiMessage = uiMessageService.findByName(name);
-        if (uiMessage == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return responseMapper.toResponse(uiMessage);
+    public UiMessageDto getUiMessage(@PathVariable String name) {
+        return uiMessageService.findByName(name);
     }
 
     @PatchMapping("/{name}")
-    public void updateUiMessage(
+    public UiMessageDto updateUiMessage(
             @PathVariable String name,
             @RequestBody UiMessageUpdateRequest uiMessageDto
     ) {
-        uiMessageService.update(name, uiMessageDto);
+        return uiMessageService.update(name, uiMessageDto);
     }
 }

@@ -14,7 +14,9 @@ public class QuestionDto {
     private String name;
     private String parent;
     @NotNull
+    @Builder.Default
     private Map<String, String> title = new HashMap<>();
     @NotNull
+    @Builder.Default
     private Map<String, String> text = new HashMap<>();
 }

@@ -16,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/group")
+@CrossOrigin(origins = "http://localhost:5173")
 @AllArgsConstructor
 public class GroupApiController {
     private final GroupService groupService;
@@ -61,18 +62,18 @@ public class GroupApiController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createGroup(
+    public GroupDto createGroup(
             @RequestBody @NotNull GroupRequest group
     ) {
-        groupService.save(group);
+        return groupService.save(group);
     }
 
     @PatchMapping("/{groupName}/title")
-    public void updateGroupTitle(
+    public GroupDto updateGroupTitle(
             @PathVariable String groupName,
             @RequestBody @NotNull GroupTitleRequest groupTitleRequest
     ) {
-        groupService.updateTitle(groupName, groupTitleRequest);
+        return groupService.updateTitle(groupName, groupTitleRequest);
     }
 
     @DeleteMapping("/{groupName}")

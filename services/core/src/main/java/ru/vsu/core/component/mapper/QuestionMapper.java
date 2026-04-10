@@ -10,6 +10,7 @@ import ru.vsu.core.model.dto.GroupTreeDto;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.entity.Question;
 import ru.vsu.core.model.request.QuestionCreateRequest;
+import ru.vsu.core.model.response.TopQuestionResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,9 @@ public interface QuestionMapper {
 
     @org.mapstruct.Mapping(source = "groupName", target = "parent")
     QuestionDto toDto(Question question);
+
+    TopQuestionResponse toTopDto(Question question);
+    List<TopQuestionResponse> toTopDto(List<Question> questions);
 
     List<QuestionDto> toDtoList(List<Question> questions);
 

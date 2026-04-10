@@ -1,9 +1,13 @@
 package ru.vsu.core.service.impl;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import ru.vsu.core.component.mapper.UserMapper;
 import ru.vsu.core.model.dto.UserDto;
+import ru.vsu.core.model.response.LanguageCountResponse;
 import ru.vsu.core.repository.UserRepository;
 import ru.vsu.core.service.UserService;
 
@@ -14,6 +18,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public List<UserDto> findAll() {
@@ -30,6 +35,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto save(UserDto user) {
         return userMapper.toDto(userRepository.save(userMapper.toEntity(user)));
+    }
+
+    @Override
+    public List<LanguageCountResponse> getUserLanguageUsage() {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.group("languageCode").count().as("count"),
+                Aggregation.lookup("languages", "_id", "code", "languages"),
+                Aggregation.project("count")
+                        .and("_id").as("languageCode")
+                        .andExpression("arrayElemAt(languages.name, 0)").as("name")
+                        .andExclude("_id")
+        );
+
+        return mongoTemplate.aggregate(aggregation, "users", LanguageCountResponse.class).getMappedResults();
     }
 
     @Override

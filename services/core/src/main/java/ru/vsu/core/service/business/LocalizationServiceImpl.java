@@ -21,14 +21,17 @@ public class LocalizationServiceImpl implements LocalizationService{
         if (group == null) {
             return;
         }
+
         Map<String, String> localizedTitle = group.title() == null
                 ? new HashMap<>()
                 : new HashMap<>(group.title());
         localizedTitle.put(langCode, title);
 
-        groupService.save(LocalizationDtoGroupBuilder.from(group)
+        groupService.save(
+                LocalizationDtoGroupBuilder.from(group)
                 .title(localizedTitle)
-                .build());
+                .build()
+        );
     }
 
     @Override
