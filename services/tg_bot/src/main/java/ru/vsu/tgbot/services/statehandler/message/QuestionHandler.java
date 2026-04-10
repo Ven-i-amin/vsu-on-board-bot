@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.services.business.GroupWindowService;
+import ru.vsu.tgbot.services.business.QuestionService;
 import ru.vsu.tgbot.services.business.UiMessageControl;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
@@ -20,10 +21,14 @@ import java.util.List;
 public class QuestionHandler implements MessageStateHandler {
     private final GroupWindowService groupWindowService;
     private final UiMessageControl uiMessageService;
+    private final QuestionService questionService;
 
     @Override
     public SendMessage answer(SessionDto sessionDto) {
         QuestionDto question = sessionDto.getGroupWindow().getLast().getQuestions().getLast();
+
+        questionService.fixate(question.getName());
+
         String text = question.getText().getOrDefault(sessionDto.getLangCode(), null);
 
         if (text == null) {

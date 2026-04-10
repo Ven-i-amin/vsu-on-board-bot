@@ -2,6 +2,7 @@ package ru.vsu.core.service;
 
 import ru.vsu.core.model.dto.GroupDto;
 import ru.vsu.core.model.dto.GroupTreeDto;
+import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.request.GroupRequest;
 import ru.vsu.core.model.request.GroupTitleRequest;
 
@@ -16,9 +17,9 @@ public interface GroupService {
 
     GroupDto save(GroupDto group);
 
-    void save(GroupRequest group);
+    GroupDto save(GroupRequest group);
 
-    void updateTitle(String name, GroupTitleRequest groupTitle);
+    GroupDto updateTitle(String name, GroupTitleRequest groupTitle);
 
     void deleteById(String groupId);
     void deleteByName(String groupName);
@@ -31,8 +32,6 @@ public interface GroupService {
     GroupTreeDto findRootGroup(int depth);
 
     GroupDto createRootIfMissing();
-
-    GroupTreeDto findTreeById(String groupId, int depth);
 
     GroupTreeDto findTreeByName(String groupName, int depth);
 }

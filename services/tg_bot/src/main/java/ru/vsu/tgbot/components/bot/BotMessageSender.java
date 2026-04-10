@@ -12,11 +12,17 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 @Component
 @RequiredArgsConstructor
 public class BotMessageSender {
+    private static final String HTML_PARSE_MODE = "HTML";
+
     private final TelegramClient telegramClient;
 
     public Message send(SendMessage message) {
         if (message == null) {
             return null;
+        }
+
+        if (message.getParseMode() == null) {
+            message.setParseMode(HTML_PARSE_MODE);
         }
 
         Message sendedMessage = null;

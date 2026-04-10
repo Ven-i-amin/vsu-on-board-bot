@@ -16,3 +16,8 @@ management:
 
 server:
   port: ${CORE_PORT:8081}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:24}

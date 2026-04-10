@@ -26,6 +26,10 @@ public class UiMessageBootstrap implements ApplicationRunner {
     }
 
     private void ensureExists(DefaultUiMessage message) {
+        if (uiMessageService.existsByName(message.name())) {
+            return;
+        }
+
         uiMessageService.save(UiMessageDto.builder()
                 .name(message.name())
                 .text(message.text())
@@ -34,13 +38,13 @@ public class UiMessageBootstrap implements ApplicationRunner {
 
     private List<DefaultUiMessage> defaultMessages() {
         return List.of(
-                new DefaultUiMessage("back", localizedText("Назад", "Back")),
-                new DefaultUiMessage("start", localizedText("В начало", "Home")),
-                new DefaultUiMessage("welcome", localizedText("Добро пожаловать!", "Welcome!")),
-                new DefaultUiMessage("main-menu", localizedText("Главное меню", "Main menu")),
-                new DefaultUiMessage("language_title", localizedText("Выбрать язык", "Choose a language")),
-                new DefaultUiMessage("question_listen", localizedText("Выберите раздел в главном меню.", "Choose a section in the main menu.")),
-                new DefaultUiMessage("question_answer", localizedText("Выберите язык.", "Choose a language."))
+                new DefaultUiMessage("back", localizedText("\u041d\u0430\u0437\u0430\u0434", "Back")),
+                new DefaultUiMessage("start", localizedText("\u0412 \u043d\u0430\u0447\u0430\u043b\u043e", "Home")),
+                new DefaultUiMessage("welcome", localizedText("\u0414\u043e\u0431\u0440\u043e \u043f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c!", "Welcome!")),
+                new DefaultUiMessage("main-menu", localizedText("\u0413\u043b\u0430\u0432\u043d\u043e\u0435 \u043c\u0435\u043d\u044e", "Main menu")),
+                new DefaultUiMessage("language-title", localizedText("\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u044f\u0437\u044b\u043a", "Choose a language")),
+                new DefaultUiMessage("question-listen", localizedText("\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0440\u0430\u0437\u0434\u0435\u043b \u0432 \u0433\u043b\u0430\u0432\u043d\u043e\u043c \u043c\u0435\u043d\u044e.", "Choose a section in the main menu.")),
+                new DefaultUiMessage("question-answer", localizedText("\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u044f\u0437\u044b\u043a.", "Choose a language."))
         );
     }
 

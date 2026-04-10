@@ -63,7 +63,14 @@ public class UiMessageControlImpl implements UiMessageControl {
             return MessageUtil.NOT_FOUND_MESSAGE;
         }
 
-        return uiMessage.getText().getOrDefault(langCode, MessageUtil.NOT_FOUND_MESSAGE);
+        if (uiMessage.getText() == null || uiMessage.getText().isEmpty()) {
+            return MessageUtil.NOT_FOUND_MESSAGE;
+        }
+
+        return uiMessage.getText().getOrDefault(
+                langCode,
+                uiMessage.getText().getOrDefault(MessageUtil.DEFAULT_LANGUAGE_CODE, MessageUtil.NOT_FOUND_MESSAGE)
+        );
     }
 
     @Override
@@ -78,7 +85,17 @@ public class UiMessageControlImpl implements UiMessageControl {
             return Pair.of(name.getValue(), MessageUtil.NOT_FOUND_MESSAGE);
         }
 
-        return Pair.of(name.getValue(), uiMessage.getText().getOrDefault(langCode, MessageUtil.NOT_FOUND_MESSAGE));
+        if (uiMessage.getText() == null || uiMessage.getText().isEmpty()) {
+            return Pair.of(name.getValue(), MessageUtil.NOT_FOUND_MESSAGE);
+        }
+
+        return Pair.of(
+                name.getValue(),
+                uiMessage.getText().getOrDefault(
+                        langCode,
+                        uiMessage.getText().getOrDefault(MessageUtil.DEFAULT_LANGUAGE_CODE, MessageUtil.NOT_FOUND_MESSAGE)
+                )
+        );
     }
 
     private void refreshMessagesIfNeeded() {

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class MessageUtil {
     public static String DEFAULT_LANGUAGE_CODE = "ru";
@@ -71,7 +72,7 @@ public class MessageUtil {
     }
 
     public static Boolean isLocalizedGroupTitle(String text, GroupDto groupDto, SessionDto sessionDto) {
-        return groupDto.getTitle().get(sessionDto.getLangCode()).equals(text);
+        return Objects.equals(getLocalizedValue(groupDto.getTitle(), sessionDto.getLangCode()), text);
     }
 
     public static List<String> getLocalizedGroupTitles(SessionDto sessionDto) {
@@ -82,8 +83,8 @@ public class MessageUtil {
         }
 
         return groups.stream()
-                .map(GroupDto::getTitle)
-                .map(titles -> titles.get(sessionDto.getLangCode()))
+                .map(group -> getLocalizedValue(group.getTitle(), sessionDto.getLangCode()))
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -93,14 +94,15 @@ public class MessageUtil {
         }
 
         return group.getInnerGroups().stream()
-                .map(session -> Pair.of(session.getName(), session.getTitle().get(sessionDto.getLangCode())))
+                .map(session -> Pair.of(session.getName(), getLocalizedValue(session.getTitle(), sessionDto.getLangCode())))
+                .filter(pair -> pair.getRight() != null)
                 .toList();
     }
 
     public static List<String> getLocalizedQuestionTitle(GroupDto group, SessionDto sessionDto) {
         return group.getQuestions().stream()
                 .map(QuestionDto::getTitle)
-                .map(el -> el.get(sessionDto.getLangCode()))
+                .map(title -> getLocalizedValue(title, sessionDto.getLangCode()))
                 .filter(Objects::nonNull)
                 .toList();
     }
@@ -109,8 +111,9 @@ public class MessageUtil {
         return group.getQuestions().stream()
                 .map(question -> Pair.of(
                         question.getName(),
-                        question.getTitle().get(sessionDto.getLangCode()))
+                        getLocalizedValue(question.getTitle(), sessionDto.getLangCode()))
                 )
+                .filter(pair -> pair.getRight() != null)
                 .toList();
     }
 
@@ -123,6 +126,10 @@ public class MessageUtil {
         InlineKeyboardRow row = new InlineKeyboardRow();
 
         for (Pair<String, String> nameAndText : namesAndTexts) {
+            if (nameAndText == null || nameAndText.getRight() == null || nameAndText.getLeft() == null) {
+                continue;
+            }
+
             if (rowFill == rowSize) {
                 rowFill = 0;
                 keyboardRows.add(row);
@@ -150,6 +157,10 @@ public class MessageUtil {
         KeyboardRow row = new KeyboardRow();
 
         for (String text : texts) {
+            if (text == null) {
+                continue;
+            }
+
             if (rowFill == rowSize) {
                 rowFill = 0;
                 keyboardRows.add(row);
@@ -165,5 +176,21 @@ public class MessageUtil {
         keyboardRows.add(row);
 
         return keyboardRows;
+    }
+
+    private static String getLocalizedValue(Map<String, String> localizedValues, String langCode) {
+        if (localizedValues == null || localizedValues.isEmpty()) {
+            return null;
+        }
+
+        return Stream.of(
+                        langCode,
+                        DEFAULT_LANGUAGE_CODE
+                )
+                .filter(Objects::nonNull)
+                .map(localizedValues::get)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
     }
 }

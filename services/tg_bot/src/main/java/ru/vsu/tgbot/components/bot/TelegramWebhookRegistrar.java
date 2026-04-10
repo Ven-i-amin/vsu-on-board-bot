@@ -8,8 +8,6 @@
 //import org.springframework.stereotype.Component;
 //import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 //import org.telegram.telegrambots.meta.generics.TelegramClient;
-//import ru.vsu.tgbot.config.TelegramBotProperties;
-//
 //@Slf4j
 //@Component
 //@ConditionalOnProperty(name = "telegram.bot.mode", havingValue = "webhook")

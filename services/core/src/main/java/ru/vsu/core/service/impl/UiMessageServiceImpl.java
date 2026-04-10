@@ -2,6 +2,7 @@ package ru.vsu.core.service.impl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.core.component.mapper.UiMessageMapper;
 import ru.vsu.core.model.dto.UiMessageDto;
 import ru.vsu.core.model.entity.UiMessage;
@@ -24,6 +25,11 @@ public class UiMessageServiceImpl implements UiMessageService {
     }
 
     @Override
+    public boolean existsByName(String name) {
+        return uiMessageRepository.existsByName(name);
+    }
+
+    @Override
     public UiMessageDto findByName(String name) {
         return uiMessageRepository.findByName(name)
                 .map(uiMessageMapper::toDto)
@@ -37,7 +43,7 @@ public class UiMessageServiceImpl implements UiMessageService {
 
 
     @Override
-    public void update(String name, UiMessageUpdateRequest uiMessage) {
+    public UiMessageDto update(String name, UiMessageUpdateRequest uiMessage) {
         if (!LocalizationUtil.hasDefaultLanguage(uiMessage.text())) {
             throw new IllegalArgumentException();
         }
@@ -46,7 +52,7 @@ public class UiMessageServiceImpl implements UiMessageService {
 
         message.setText(uiMessage.text());
 
-        uiMessageRepository.save(message);
+        return uiMessageMapper.toDto(uiMessageRepository.save(message));
     }
 
     @Override

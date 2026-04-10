@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import ru.vsu.contract.model.response.UiMessageResponseDto;
@@ -22,7 +23,9 @@ import java.util.List;
 @AllArgsConstructor
 @RedisHash(value = "session", timeToLive = Session.TIME_TO_LIVE)
 public class Session {
+    @Value("${redis.session.timespan}")
     public static final int TIME_TO_LIVE = 120;
+
     @Id
     private Long chatId;
     @NotNull
