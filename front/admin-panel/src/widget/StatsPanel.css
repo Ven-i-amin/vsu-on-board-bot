@@ -4,6 +4,19 @@
   min-width: 0;
 }
 
+.stats-panel__status {
+  padding: 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  background: var(--app-surface);
+  color: var(--app-text-strong);
+}
+
+.stats-panel__status_error {
+  color: #9f2e2e;
+  border-color: #d65f5f;
+}
+
 .stats-card {
   padding: 1rem;
   border: 1px solid var(--app-border);

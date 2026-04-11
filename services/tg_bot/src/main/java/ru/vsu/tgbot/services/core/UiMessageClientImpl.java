@@ -16,7 +16,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class UiMessageServiceImpl implements UiMessageService {
+public class UiMessageClientImpl implements UiMessageClient {
     private final WebClient coreClient;
     private final CoreResponseMapper coreResponseMapper;
 
@@ -39,13 +39,13 @@ public class UiMessageServiceImpl implements UiMessageService {
 
     private List<UiMessageDto> fallbackMessages() {
         return List.of(
-                stub("back", "\u041d\u0430\u0437\u0430\u0434"),
-                stub("start", "\u0412 \u043d\u0430\u0447\u0430\u043b\u043e"),
-                stub("welcome", "\u0414\u043e\u0431\u0440\u043e \u043f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c!"),
-                stub("main-menu", "\u0413\u043b\u0430\u0432\u043d\u043e\u0435 \u043c\u0435\u043d\u044e"),
-                stub("language-title", "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u044f\u0437\u044b\u043a"),
-                stub("question-listen", "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0440\u0430\u0437\u0434\u0435\u043b \u0432 \u0433\u043b\u0430\u0432\u043d\u043e\u043c \u043c\u0435\u043d\u044e."),
-                stub("question-answer", "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u044f\u0437\u044b\u043a.")
+                stub("back", "Назад"),
+                stub("start", "В начало"),
+                stub("welcome", "Добро пожаловать!"),
+                stub("main-menu", "Главное меню"),
+                stub("language-title", "Выбрать язык"),
+                stub("question-listen", "Выберите раздел в главном меню."),
+                stub("question-answer", "Выберите язык.")
         );
     }
 

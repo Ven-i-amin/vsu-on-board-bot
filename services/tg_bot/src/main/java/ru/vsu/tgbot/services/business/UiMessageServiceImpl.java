@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.UiMessageDto;
-import ru.vsu.tgbot.services.core.UiMessageService;
+import ru.vsu.tgbot.services.core.UiMessageClient;
 import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessageName;
 
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UiMessageControlImpl implements UiMessageControl {
+public class UiMessageServiceImpl implements UiMessageService {
     private static final long REFRESH_RETRY_DELAY_MILLIS = TimeUnit.SECONDS.toMillis(30);
 
-    private final UiMessageService uiMessageService;
-    private final LanguageControl languageControl;
+    private final UiMessageClient uiMessageClient;
+    private final LanguageService languageService;
 
     private volatile List<UiMessageDto> uiMessageList = List.of();
     private volatile long nextRefreshAttemptAt;
@@ -121,14 +121,14 @@ public class UiMessageControlImpl implements UiMessageControl {
     }
 
     private void refreshMessages() {
-        uiMessageList = uiMessageService.getUiMessages();
+        uiMessageList = uiMessageClient.getUiMessages();
         nextRefreshAttemptAt = System.currentTimeMillis() + REFRESH_RETRY_DELAY_MILLIS;
     }
 
     private UiMessageDto getErrorMessage(String name) {
         return UiMessageDto.builder()
                 .name(name)
-                .text(languageControl.getLanguages().stream()
+                .text(languageService.getLanguages().stream()
                         .map(LanguageDto::code)
                         .collect(Collectors.toMap(
                                 Function.identity(),

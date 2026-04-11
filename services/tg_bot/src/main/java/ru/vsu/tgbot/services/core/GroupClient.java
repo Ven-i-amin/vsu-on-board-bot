@@ -4,7 +4,7 @@ import ru.vsu.tgbot.model.dto.GroupDto;
 
 import java.util.List;
 
-public interface GroupService {
+public interface GroupClient {
     GroupDto getQuestionGroup(String groupName, String language);
     GroupDto getGroupWithDepth(String groupName, Integer depth, String language);
     GroupDto getGroupByNameWithDepth(String groupName, Integer depth, String language);

@@ -16,7 +16,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class LanguageServiceImpl implements LanguageService {
+public class LanguageServiceImpl implements LanguageClient {
     private WebClient coreClient;
     private CoreResponseMapper coreResponseMapper;
 

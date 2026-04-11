@@ -6,12 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 @Builder
-public record GroupTreeDto(
-        String groupId,
+public record GroupResponse(
         String name,
         Map<String, String> title,
         String parentName,
-        List<GroupTreeDto> innerGroups,
+        List<String> childrenNames,
         List<QuestionDto> questions
 ) {
 }

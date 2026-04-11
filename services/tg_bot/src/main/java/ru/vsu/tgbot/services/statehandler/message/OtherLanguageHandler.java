@@ -11,8 +11,8 @@ import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.UiMessageControl;
-import ru.vsu.tgbot.services.core.LanguageService;
+import ru.vsu.tgbot.services.business.UiMessageService;
+import ru.vsu.tgbot.services.core.LanguageClient;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessageName;
@@ -25,17 +25,17 @@ import java.util.Set;
 @AllArgsConstructor
 public class OtherLanguageHandler implements MessageStateHandler {
     public static final int OTHER_LANGUAGE_ROW_SIZE = 1;
-    private LanguageService languageService;
-    private UiMessageControl uiMessageControl;
+    private LanguageClient languageClient;
+    private UiMessageService uiMessageService;
 
     @Override
     public SendMessage answer(SessionDto sessionDto) {
-        String otherLanguageMenuText = uiMessageControl.getUiMessageText(
+        String otherLanguageMenuText = uiMessageService.getUiMessageText(
                 UiMessageName.OTHER_LANGUAGE_MENU,
                 sessionDto.getLangCode()
         );
 
-        List<LanguageDto> availableLanguages = languageService.getLanguages();
+        List<LanguageDto> availableLanguages = languageClient.getLanguages();
 
         if (availableLanguages.isEmpty()) {
             return null;
@@ -63,7 +63,7 @@ public class OtherLanguageHandler implements MessageStateHandler {
 
     @Override
     public boolean listen(SessionDto sessionDto) {
-        List<LanguageDto> availableLanguages = languageService.getLanguages();
+        List<LanguageDto> availableLanguages = languageClient.getLanguages();
         String userInput = MessageUtil.extractUserInput(sessionDto.getUpdate());
 
         if (availableLanguages.isEmpty() || userInput == null) {

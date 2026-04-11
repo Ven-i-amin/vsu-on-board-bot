@@ -4,6 +4,6 @@ import ru.vsu.tgbot.model.dto.UiMessageDto;
 
 import java.util.List;
 
-public interface UiMessageService {
+public interface UiMessageClient {
     List<UiMessageDto> getUiMessages();
 }

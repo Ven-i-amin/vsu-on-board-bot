@@ -1,20 +1,19 @@
 package ru.vsu.core.service.impl;
 
 import lombok.AllArgsConstructor;
-import org.bson.Document;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.core.component.mapper.GroupMapper;
 import ru.vsu.core.model.dto.GroupDto;
-import ru.vsu.core.model.dto.GroupNodeDto;
-import ru.vsu.core.model.dto.GroupTreeDto;
+import ru.vsu.core.model.dto.GroupWithQuestionsDto;
+import ru.vsu.core.model.dto.GroupResponse;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.request.GroupRequest;
 import ru.vsu.core.model.request.GroupTitleRequest;
@@ -25,11 +24,10 @@ import ru.vsu.core.util.LocalizationUtil;
 import ru.vsu.core.util.TransliterationUtil;
 
 import java.util.LinkedHashMap;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import static ru.vsu.core.util.GroupTreeUtil.*;
 import static ru.vsu.core.util.LocalizationUtil.DEFAULT_LANGUAGE_CODE;
 import static ru.vsu.core.util.LocalizationUtil.localize;
 
@@ -65,16 +63,18 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public GroupDto save(GroupDto group) {
-        if (group.parentName() == null) {
+        GroupDto normalizedGroup = normalizeGroup(group);
+
+        if (normalizedGroup.path().isEmpty()) {
             GroupDto existingRoot = findRoot();
             boolean isAnotherRoot = existingRoot != null
-                    && (group.groupId() == null || !existingRoot.groupId().equals(group.groupId()));
+                    && (normalizedGroup.groupId() == null || !existingRoot.groupId().equals(normalizedGroup.groupId()));
             if (isAnotherRoot) {
                 throw new IllegalStateException("Root group already exists");
             }
         }
 
-        return groupMapper.toDto(groupRepository.save(groupMapper.toEntity(group)));
+        return groupMapper.toDto(groupRepository.save(groupMapper.toEntity(normalizedGroup)));
     }
 
     @Override
@@ -89,6 +89,12 @@ public class GroupServiceImpl implements GroupService {
 
         String russianTitle = localize(group.title(), DEFAULT_LANGUAGE_CODE);
         Group savingGroup = groupMapper.toEntity(group, russianTitle);
+        GroupDto parentGroup = findByName(group.parentName());
+        if (parentGroup == null) {
+            throw new IllegalArgumentException("Parent group not found");
+        }
+        savingGroup.setPath(buildPath(parentGroup));
+        savingGroup.setDepthLevel(savingGroup.getPath().size());
         return saveWithUniqueName(savingGroup);
     }
 
@@ -113,10 +119,7 @@ public class GroupServiceImpl implements GroupService {
         GroupDto savedGroup = saveWithUniqueName(group);
 
         if (!name.equals(savedGroup.name())) {
-            Query query = new Query(Criteria.where("parentName").is(name));
-            Update update = new Update().set("parentName", savedGroup.name());
-
-            mongoTemplate.updateMulti(query, update, Group.class);
+            updateDescendantPaths(name, savedGroup.name());
 
             questionService.updateGroupName(name, savedGroup.name());
         }
@@ -128,14 +131,14 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void deleteById(String groupId) {
         Group group = groupRepository.findById(groupId).orElseThrow(IllegalArgumentException::new);
-        if (group.getParentName() == null) {
+        if (group.getPath() == null || group.getPath().isEmpty()) {
             throw new IllegalStateException("Root group cannot be deleted");
         }
 
         String groupName = group.getName();
 
         groupRepository.deleteByName(groupName);
-        groupRepository.deleteByParentName(groupName);
+        deleteByParentName(groupName);
         questionService.deleteByGroupName(groupName);
     }
 
@@ -143,28 +146,28 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void deleteByName(String groupName) {
         Group group = groupRepository.findByName(groupName).orElseThrow(IllegalArgumentException::new);
-        if (group.getParentName() == null) {
+        if (group.getPath() == null || group.getPath().isEmpty()) {
             throw new IllegalStateException("Root group cannot be deleted");
         }
 
         groupRepository.deleteByName(groupName);
-        groupRepository.deleteByParentName(groupName);
+        deleteByParentName(groupName);
         questionService.deleteByGroupName(groupName);
     }
 
     @Override
     public List<GroupDto> findByParentName(String parentName) {
-        return groupMapper.toDtoList(groupRepository.findByParentName(parentName));
+        return groupMapper.toDtoList(mongoTemplate.find(queryByLastPathElement(parentName), Group.class));
     }
 
     @Override
     public List<GroupDto> findByParentNames(List<String> parentNames) {
-        return groupMapper.toDtoList(groupRepository.findByParentNameIn(parentNames));
+        return groupMapper.toDtoList(mongoTemplate.find(queryByLastPathElementIn(parentNames), Group.class));
     }
 
     @Override
     public GroupDto findRoot() {
-        List<Group> roots = groupRepository.findAllByParentNameIsNull();
+        List<Group> roots = mongoTemplate.find(rootQuery(), Group.class);
         if (roots.isEmpty()) {
             return null;
         }
@@ -179,10 +182,9 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public GroupTreeDto findRootGroup(int depth) {
+    public List<GroupResponse> findRootGroup(int depth) {
         GroupDto group = findRoot();
 
-        assert group != null;
         return findTreeByName(group.name(), depth);
     }
 
@@ -193,28 +195,73 @@ public class GroupServiceImpl implements GroupService {
             return existingRoot;
         }
 
-        return save(GroupDto.builder()
-                .name(ROOT_GROUP_NAME)
-                .title(buildRootTitle())
-                .parentName(null)
-                .build());
+        return save(
+                GroupDto.builder()
+                        .name(ROOT_GROUP_NAME)
+                        .title(buildRootTitle())
+                        .path(List.of())
+                        .build()
+        );
     }
 
     @Override
-    public GroupTreeDto findTreeByName(String name, int depth) {
-        Aggregation aggregation = getTreeAggregation(name, depth);
-        List<GroupNodeDto> nodes = new ArrayList<>(
-                mongoTemplate.aggregate(aggregation, "groups", GroupNodeDto.class).getMappedResults()
+    public List<GroupResponse> findTreeByName(String name, int depth) {
+        Aggregation rootNodeAggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("name").is(name)),
+                Aggregation.project(
+                                "name",
+                                "title",
+                                "depth",
+                                "path"
+                        )
+                        .and(
+                                ArrayOperators.ArrayElemAt.arrayOf("path").elementAt(-1)
+                        ).as("parentName"),
+                Aggregation.lookup(
+                        "questions",
+                        "name",
+                        "groupName",
+                        "questions"
+                )
         );
 
-        if (nodes.isEmpty()) {
-            return null;
+        GroupWithQuestionsDto root = mongoTemplate
+                .aggregate(rootNodeAggregation, "groups", GroupWithQuestionsDto.class)
+                .getUniqueMappedResult();
+
+        if (root == null) {
+            return List.of();
         }
 
-        GroupNodeDto root = findRootByName(nodes, name);
-        nodes.remove(root);
+        Long rootDepth = root.depth();
 
-        return buildTree(root, nodes);
+        Aggregation treeNodeAggregation = Aggregation.newAggregation(
+                Aggregation.match(
+                        Criteria.where("path." + rootDepth).is(root.name())
+                                .and("depth").lte(rootDepth + depth)
+                ),
+                Aggregation.project(
+                                "name",
+                                "title",
+                                "depth",
+                                "path"
+                        )
+                        .and(
+                                ArrayOperators.ArrayElemAt.arrayOf("path").elementAt(-1)
+                        ).as("parentName"),
+                Aggregation.lookup(
+                        "questions",
+                        "name",
+                        "groupName",
+                        "questions"
+                )
+        );
+
+        List<GroupWithQuestionsDto> groupList = mongoTemplate
+                .aggregate(treeNodeAggregation, "groups", GroupWithQuestionsDto.class)
+                .getMappedResults();
+
+        return groupMapper.toResponse(root, groupList);
     }
 
     private Map<String, String> buildRootTitle() {
@@ -225,18 +272,13 @@ public class GroupServiceImpl implements GroupService {
                 ROOT_TITLE_RU
         );
 
-        title.put(
-                "en",
-                "Main Menu"
-        );
-
         return title;
     }
 
     private GroupDto saveWithUniqueName(Group group) {
         String baseName = group.getName();
         int suffix = 0;
-        
+
         while (true) {
             try {
                 return groupMapper.toDto(groupRepository.save(group));
@@ -247,85 +289,109 @@ public class GroupServiceImpl implements GroupService {
             group.setName(baseName + "-" + suffix);
         }
     }
-    
-    private Aggregation getTreeAggregation(String name, int depth) {
-        return Aggregation.newAggregation(
 
-                // $match
-                Aggregation.match(Criteria.where("name").is(name)),
+    private GroupDto normalizeGroup(GroupDto group) {
+        if (group.path() != null) {
+            return group;
+        }
 
-                // $graphLookup
-                context -> new Document("$graphLookup",
-                        new Document("from", "groups")
-                                .append("startWith", "$name")
-                                .append("connectFromField", "name")
-                                .append("connectToField", "parentName")
-                                .append("as", "innerGroups")
-                                .append("maxDepth", depth)
-                                .append("depthField", "level")
-                ),
+        if (group.parentName() == null) {
+            return GroupDto.builder()
+                    .groupId(group.groupId())
+                    .name(group.name())
+                    .title(group.title())
+                    .parentName(null)
+                    .path(List.of())
+                    .build();
+        }
 
-                // $addFields allGroups
-                context -> new Document("$addFields",
-                        new Document("allGroups",
-                                new Document("$concatArrays",
-                                        List.of(List.of("$$ROOT"), "$innerGroups")
-                                )
+        GroupDto parentGroup = findByName(group.parentName());
+        if (parentGroup == null) {
+            throw new IllegalArgumentException("Parent group not found");
+        }
+
+        return GroupDto.builder()
+                .groupId(group.groupId())
+                .name(group.name())
+                .title(group.title())
+                .parentName(group.parentName())
+                .path(buildPath(parentGroup))
+                .build();
+    }
+
+    private List<String> buildPath(GroupDto parentGroup) {
+        Stream<String> basePath = parentGroup.path() == null
+                ? Stream.empty()
+                : parentGroup.path().stream();
+
+        return Stream.concat(basePath, Stream.of(parentGroup.name()))
+                .toList();
+    }
+
+    private Query rootQuery() {
+        return new Query(new Criteria().orOperator(
+                Criteria.where("path").exists(false),
+                Criteria.where("path").size(0)
+        ));
+    }
+
+    private Query queryByLastPathElement(String parentName) {
+        return new BasicQuery(new org.bson.Document(
+                "$expr",
+                new org.bson.Document(
+                        "$eq",
+                        List.of(
+                                new org.bson.Document("$arrayElemAt", List.of("$path", -1)),
+                                parentName
                         )
-                ),
+                )
+        ));
+    }
 
-                // $unwind
-                Aggregation.unwind("allGroups"),
-
-                // $replaceRoot
-                context -> new Document("$replaceRoot",
-                        new Document("newRoot", "$allGroups")
-                ),
-
-                // level default
-                context -> new Document("$addFields",
-                        new Document("level",
-                                new Document("$ifNull", List.of("$level", -1))
+    private Query queryByLastPathElementIn(List<String> parentNames) {
+        return new BasicQuery(new org.bson.Document(
+                "$expr",
+                new org.bson.Document(
+                        "$in",
+                        List.of(
+                                new org.bson.Document("$arrayElemAt", List.of("$path", -1)),
+                                parentNames
                         )
-                ),
+                )
+        ));
+    }
 
-                // $lookup questions
-                context -> new Document("$lookup",
-                        new Document("from", "questions")
-                                .append("localField", "name")
-                                .append("foreignField", "groupName")
-                                .append("as", "questions")
-                ),
+    private void deleteByParentName(String parentName) {
+        mongoTemplate.remove(queryByLastPathElement(parentName), Group.class);
+    }
 
-                // $project
-                context -> new Document("$project",
-                        new Document("_id", 0)
-                                .append("groupId", "$_id")
-                                .append("name", 1)
-                                .append("title", 1)
-                                .append("parentName", 1)
-                                .append("level", 1)
-                                .append("questions",
-                                        new Document("$map",
-                                                new Document("input", "$questions")
-                                                        .append("as", "question")
-                                                        .append("in",
-                                                                new Document("questionId", "$$question._id")
-                                                                        .append("name", "$$question.name")
-                                                                        .append("parent", "$$question.groupName")
-                                                                        .append("title", "$$question.title")
-                                                                        .append("text", "$$question.text")
+    private void updateDescendantPaths(String oldName, String newName) {
+        mongoTemplate.getCollection("groups").updateMany(
+                new org.bson.Document("path", oldName),
+                List.of(
+                        new org.bson.Document(
+                                "$set",
+                                new org.bson.Document(
+                                        "path",
+                                        new org.bson.Document(
+                                                "$map",
+                                                new org.bson.Document("input", "$path")
+                                                        .append("as", "pathItem")
+                                                        .append(
+                                                                "in",
+                                                                new org.bson.Document(
+                                                                        "$cond",
+                                                                        List.of(
+                                                                                new org.bson.Document("$eq", List.of("$$pathItem", oldName)),
+                                                                                newName,
+                                                                                "$$pathItem"
+                                                                        )
+                                                                )
                                                         )
                                         )
                                 )
-                ),
-
-                // $sort
-                Aggregation.sort(Sort.by(
-                        Sort.Order.asc("level"),
-                        Sort.Order.asc("parentName"),
-                        Sort.Order.asc("name")
-                ))
+                        )
+                )
         );
     }
 }

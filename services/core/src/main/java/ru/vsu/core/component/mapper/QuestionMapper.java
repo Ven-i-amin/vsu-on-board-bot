@@ -4,9 +4,9 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import ru.vsu.core.model.dto.GroupResponse;
 import ru.vsu.core.model.dto.QuestionDto;
 import ru.vsu.core.model.dto.QuestionLocalizedDto;
-import ru.vsu.core.model.dto.GroupTreeDto;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.entity.Question;
 import ru.vsu.core.model.request.QuestionCreateRequest;
@@ -62,11 +62,11 @@ public interface QuestionMapper {
     }
 
     @Named("toShallowLocalizedGroup")
-    default GroupTreeDto toShallowLocalizedGroup(Group group, @Context String languageCode) {
+    default GroupResponse toShallowLocalizedGroup(Group group, @Context String languageCode) {
         if (group == null) {
             return null;
         }
-        return GroupTreeDto.builder()
+        return GroupResponse.builder()
                 .groupId(group.getGroupId())
                 .title(group.getTitle())
                 .build();

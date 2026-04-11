@@ -383,12 +383,18 @@ public class RootContentBootstrap implements ApplicationRunner {
         }
 
         GroupDto parentGroup = groupService.findById(parentGroupId);
-        String parentName = parentGroup == null ? null : parentGroup.name();
+        java.util.List<String> path = parentGroup == null
+                ? java.util.List.of()
+                : java.util.stream.Stream.concat(
+                        (parentGroup.path() == null ? java.util.stream.Stream.<String>empty() : parentGroup.path().stream()),
+                        java.util.stream.Stream.of(parentGroup.name())
+                )
+                .toList();
 
         return groupService.save(GroupDto.builder()
                 .name(name)
                 .title(title)
-                .parentName(parentName)
+                .path(path)
                 .build());
     }
 
