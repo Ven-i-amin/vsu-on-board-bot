@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import ru.vsu.tgbot.components.registry.MessageHandlerRegistry;
 import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.UiMessageControl;
+import ru.vsu.tgbot.services.business.UiMessageService;
 import ru.vsu.tgbot.services.statehandler.global.MainMenuHandler;
 import ru.vsu.tgbot.services.statehandler.message.MessageStateHandler;
 import ru.vsu.tgbot.util.BotState;
@@ -22,7 +22,7 @@ import static ru.vsu.tgbot.util.MessageUtil.NOT_FOUND_MESSAGE;
 public class SendHandler implements BotStateHandler {
     private MainMenuHandler globalHandler;
     private MessageHandlerRegistry messageRegistry;
-    private UiMessageControl uiMessageControl;
+    private UiMessageService uiMessageService;
 
     @Override
     public void handle(SessionDto sessionDto, BotMessageSender sender) {
@@ -62,10 +62,10 @@ public class SendHandler implements BotStateHandler {
     }
 
     private SendMessage createErrorMessage(SessionDto sessionDto) {
-        String errorText = uiMessageControl.getUiMessageText(UiMessageName.ERROR, sessionDto.getLangCode());
+        String errorText = uiMessageService.getUiMessageText(UiMessageName.ERROR, sessionDto.getLangCode());
 
         if (errorText.equals(NOT_FOUND_MESSAGE)) {
-            errorText = uiMessageControl.getUiMessageText(UiMessageName.ERROR, DEFAULT_LANGUAGE_CODE);
+            errorText = uiMessageService.getUiMessageText(UiMessageName.ERROR, DEFAULT_LANGUAGE_CODE);
         }
 
         return SendMessage.builder()

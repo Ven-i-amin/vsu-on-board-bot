@@ -10,7 +10,8 @@ import ru.vsu.tgbot.components.bot.BotMessageSender;
 import ru.vsu.tgbot.components.registry.BotHandlerRegistry;
 import ru.vsu.tgbot.model.dto.SessionDto;
 import ru.vsu.tgbot.model.dto.UserDto;
-import ru.vsu.tgbot.services.core.UserService;
+import ru.vsu.tgbot.services.business.GroupCacheService;
+import ru.vsu.tgbot.services.core.UserClient;
 import ru.vsu.tgbot.services.session.SessionService;
 import ru.vsu.tgbot.services.statehandler.bot.BotStateHandler;
 import ru.vsu.tgbot.util.BotState;
@@ -23,7 +24,8 @@ import ru.vsu.tgbot.util.MessageUtil;
 @AllArgsConstructor
 public class QueryServiceImpl implements QueryService {
     private SessionService sessionService;
-    private UserService userService;
+    private UserClient userClient;
+    private GroupCacheService groupCacheService;
     private BotHandlerRegistry botHandlerRegistry;
     private BotMessageSender botMessageSender;
 
@@ -53,7 +55,7 @@ public class QueryServiceImpl implements QueryService {
         SessionDto sessionDto = sessionService.getSession(chatId);
 
         if (sessionDto == null) {
-            UserDto user = userService.getUser(chatId);
+            UserDto user = userClient.getUser(chatId);
             String language = user == null ? null : user.getLangCode();
 
             sessionDto = SessionDto.builder()
@@ -66,6 +68,7 @@ public class QueryServiceImpl implements QueryService {
                     .build();
         }
 
+        sessionDto.setStart(groupCacheService.getStartGroup());
         sessionDto.setUpdate(update);
         return sessionDto;
     }

@@ -4,7 +4,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import ru.vsu.tgbot.model.dto.UiMessageDto;
 import ru.vsu.tgbot.util.UiMessageName;
 
-public interface UiMessageControl {
+public interface UiMessageService {
     UiMessageDto getUiMessage(String name);
     UiMessageDto getUiMessage(UiMessageName name);
 

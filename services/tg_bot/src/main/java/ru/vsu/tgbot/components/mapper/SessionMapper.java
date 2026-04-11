@@ -12,9 +12,10 @@ import ru.vsu.tgbot.model.entity.Session;
 public interface SessionMapper {
     SessionMapper INSTANCE = Mappers.getMapper(SessionMapper.class);
 
+    @Mapping(target = "start", ignore = true)
     @Mapping(target = "update", ignore = true)
     SessionDto sessionToSessionDto(Session session);
 
-    @BeanMapping(ignoreUnmappedSourceProperties = {"update", "uiMessages"})
+    @BeanMapping(ignoreUnmappedSourceProperties = {"start", "update", "uiMessages"})
     Session sessionDtoToSession(SessionDto sessionDto);
 }

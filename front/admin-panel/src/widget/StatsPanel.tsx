@@ -1,55 +1,42 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './StatsPanel.css'
+import { fetchTopLanguages, fetchTopQuestions } from '../api/adminApi'
+import type { LocalizedText } from '../entities/models'
 
 type StatItem = {
   label: string
   value: number
 }
 
-const languageStats: StatItem[] = [
-  { label: 'Русский', value: 1284 },
-  { label: 'English', value: 938 },
-  { label: 'Deutsch', value: 412 },
-  { label: 'Español', value: 286 },
-  { label: 'Français', value: 214 },
-  { label: 'Italiano', value: 167 },
-  { label: '中文', value: 123 },
-  { label: 'Português', value: 94 },
-]
+type LanguageStatResponse = {
+  languageCode: string
+  name: LocalizedText
+  count: number
+}
 
-const popularQuestions: StatItem[] = [
-  { label: 'Активные пользователи', value: 864 },
-  { label: 'Настройки панели', value: 731 },
-  { label: 'Недельный отчёт', value: 664 },
-  { label: 'Ошибки авторизации', value: 521 },
-  { label: 'Резервное копирование', value: 438 },
-  { label: 'Роли и доступы', value: 372 },
-  { label: 'Массовые рассылки', value: 305 },
-  { label: 'Внутренние уведомления', value: 244 },
-]
+type TopQuestionResponse = {
+  name: string
+  parent: string
+  title: LocalizedText
+  text: LocalizedText
+  using: number
+}
+
+const localize = (value: LocalizedText | undefined, langCode: string, fallback: string) =>
+  value?.[langCode] ?? value?.ru ?? value?.en ?? fallback
 
 function StatsList({ title, items }: { title: string; items: StatItem[] }) {
-  const [showAll, setShowAll] = useState(false)
-  const visibleItems = showAll ? items : items.slice(0, 5)
+  const visibleItems = items.slice(0, 5)
 
   return (
     <article className="stats-card">
       <div className="stats-card__header">
         <h3 className="stats-card__title">{title}</h3>
-        {items.length > 5 && (
-          <button
-            className="stats-card__toggle"
-            type="button"
-            onClick={() => setShowAll((current) => !current)}
-          >
-            {showAll ? 'Скрыть' : 'Показать все'}
-          </button>
-        )}
       </div>
 
       <ol className="stats-card__list">
         {visibleItems.map((item, index) => (
-          <li className="stats-card__item" key={item.label}>
+          <li className="stats-card__item" key={`${item.label}-${index}`}>
             <span className="stats-card__rank">{index + 1}</span>
             <span className="stats-card__label">{item.label}</span>
             <span className="stats-card__value">{item.value}</span>
@@ -60,7 +47,77 @@ function StatsList({ title, items }: { title: string; items: StatItem[] }) {
   )
 }
 
-function StatsPanel() {
+function StatsPanel({ langCode = 'ru' }: { langCode?: string }) {
+  const [languages, setLanguages] = useState<LanguageStatResponse[]>([])
+  const [questions, setQuestions] = useState<TopQuestionResponse[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadStats() {
+      setErrorMessage('')
+      setIsLoading(true)
+
+      try {
+        const [topLanguages, topQuestions] = await Promise.all([
+          fetchTopLanguages(),
+          fetchTopQuestions(),
+        ])
+
+        if (cancelled) {
+          return
+        }
+
+        setLanguages(topLanguages as LanguageStatResponse[])
+        setQuestions(topQuestions as TopQuestionResponse[])
+      } catch (error) {
+        if (cancelled) {
+          return
+        }
+
+        setErrorMessage(error instanceof Error ? error.message : 'Не удалось загрузить статистику')
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadStats()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const languageStats = useMemo(
+    () =>
+      languages.map((item) => ({
+        label: localize(item.name, langCode, item.languageCode),
+        value: item.count,
+      })),
+    [langCode, languages],
+  )
+
+  const popularQuestions = useMemo(
+    () =>
+      questions.map((item) => ({
+        label: localize(item.title, langCode, item.name),
+        value: item.using,
+      })),
+    [langCode, questions],
+  )
+
+  if (isLoading) {
+    return <div className="stats-panel__status">Загрузка статистики...</div>
+  }
+
+  if (errorMessage) {
+    return <div className="stats-panel__status stats-panel__status_error">{errorMessage}</div>
+  }
+
   return (
     <div className="stats-panel">
       <StatsList title="Топ языков пользователей" items={languageStats} />

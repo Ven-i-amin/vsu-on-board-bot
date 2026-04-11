@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.UiMessageControl;
-import ru.vsu.tgbot.services.core.GroupService;
+import ru.vsu.tgbot.services.business.GroupCacheService;
+import ru.vsu.tgbot.services.business.UiMessageService;
 import ru.vsu.tgbot.util.BotState;
 import ru.vsu.tgbot.util.MainMenuState;
 import ru.vsu.tgbot.util.MessageState;
@@ -15,13 +15,13 @@ import ru.vsu.tgbot.util.UiMessageName;
 @Service
 @AllArgsConstructor
 public class WelcomeHandler implements MessageStateHandler {
-    private final GroupService groupService;
-    private final UiMessageControl uiMessageService;
+    private final GroupCacheService groupCacheService;
+    private final UiMessageService uiMessageService;
 
 
     @Override
     public SendMessage answer(SessionDto sessionDto) {
-        GroupDto startGroup = groupService.getStartGroup();
+        GroupDto startGroup = groupCacheService.getStartGroup();
 
         sessionDto.setStart(startGroup);
         sessionDto.getGroupWindow().clear();

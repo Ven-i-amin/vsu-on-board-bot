@@ -13,94 +13,60 @@ import {
   type AvailableLanguageCode,
   type LocalizedText,
 } from './entities/models'
-import AdminPage from './pages/AdminPage'
+import {
+  createGroup,
+  createQuestion,
+  deleteGroup,
+  deleteQuestion,
+  fetchAdminData,
+  fetchGroup,
+  fetchInnerGroups,
+  fetchStartGroup,
+  mapGroupDto,
+  mapQuestion,
+  mapUiMessage,
+  updateGroupTitle,
+  updateQuestion,
+  updateUiMessage as updateUiMessageRequest,
+  type GroupNode,
+} from './api/adminApi'
+import AdminPage, { type BreadcrumbItem } from './pages/AdminPage'
+import DashboardPage from './pages/DashboardPage'
+import LoginPage from './pages/LoginPage'
+import QuestionEditorPage from './pages/QuestionEditorPage'
+import RegistrationPage from './pages/RegistrationPage'
+import StatisticsPage from './pages/StatisticsPage'
+import TechnicalQuestionsPage from './pages/TechnicalQuestionsPage'
 import OverlayModal from './widget/OverlayModal'
 import RichTextEditor from './widget/RichTextEditor'
 
 type Theme = 'light' | 'dark'
 type LanguageCode = AvailableLanguageCode
 type LocalizedDraft = Record<LanguageCode, string>
+type AppRoute =
+  | { type: 'login' }
+  | { type: 'dashboard' }
+  | { type: 'statistics' }
+  | { type: 'registration' }
+  | { type: 'technical-questions' }
+  | { type: 'groups'; path: string[] }
+  | { type: 'question'; questionId: string }
 type ModalState =
   | { type: 'edit-group'; groupName: string }
-  | { type: 'select-add-child'; groupName: string }
   | { type: 'create-group'; groupName: string }
   | { type: 'create-question'; groupName: string }
   | { type: 'delete-group'; groupName: string }
-  | { type: 'edit-question'; questionId: string }
   | { type: 'delete-question'; questionId: string }
   | { type: 'edit-ui-message'; messageName: string }
   | null
 
-const initialGroups = [
-  new GroupModel({
-    name: 'admin',
-    title: { ru: 'Администрирование', en: 'Administration' },
-    parentName: '',
-    innerGroups: [
-      new GroupModel({
-        name: 'users',
-        title: { ru: 'Пользователи', en: 'Users' },
-        parentName: 'admin',
-        questions: [
-          new Question({
-            questionId: 'active-users',
-            name: 'active-users',
-            parent: 'users',
-            title: { ru: 'Активные пользователи', en: 'Active users' },
-            text: { ru: '<p>Список активных пользователей.</p>' },
-          }),
-        ],
-      }),
-      new GroupModel({
-        name: 'content',
-        title: { ru: 'Контент', en: 'Content' },
-        parentName: 'admin',
-      }),
-    ],
-    questions: [
-      new Question({
-        questionId: 'settings',
-        name: 'settings',
-        parent: 'admin',
-        title: { ru: 'Настройки панели', en: 'Panel settings' },
-        text: { ru: '<p>Общие настройки панели.</p>' },
-      }),
-    ],
-  }),
-  new GroupModel({
-    name: 'analytics',
-    title: { ru: 'Аналитика', en: 'Analytics' },
-    parentName: '',
-    questions: [
-      new Question({
-        questionId: 'weekly-report',
-        name: 'weekly-report',
-        parent: 'analytics',
-        title: { ru: 'Недельный отчёт', en: 'Weekly report' },
-        text: { ru: '<p>Еженедельный отчёт по проекту.</p>' },
-      }),
-    ],
-  }),
-]
+type CachedGroupMap = Record<string, GroupNode>
+type QuestionLookup = {
+  question: Question
+  groupName: string
+} | null
 
-const initialUiMessages = [
-  new UiMessage({
-    name: 'unknown-command',
-    description: {
-      ru: 'Показывается пользователю, когда бот не распознал введённую команду.',
-      en: 'Shown to the user when the bot cannot recognize the entered command.',
-    },
-    text: { ru: 'Неизвестная команда', en: 'Unknown command' },
-  }),
-  new UiMessage({
-    name: 'internal-error',
-    description: {
-      ru: 'Показывается пользователю, если во время обработки произошла внутренняя ошибка.',
-      en: 'Shown to the user if an internal error occurs during processing.',
-    },
-    text: { ru: 'Внутренняя ошибка', en: 'Internal error' },
-  }),
-]
+const THEME_STORAGE_KEY = 'admin-panel-theme'
 
 const slugify = (value: string) =>
   value
@@ -108,8 +74,6 @@ const slugify = (value: string) =>
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '')
-
-const cloneGroups = (groups: GroupModel[]) => groups.map((group) => new GroupModel(group))
 
 const createEmptyLocalizedDraft = (): LocalizedDraft => ({
   ru: '',
@@ -123,6 +87,29 @@ const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft => ({
 
 const isRichTextEmpty = (value: string) =>
   value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() === ''
+
+const normalizeRichTextForRequest = (value: string) =>
+  value
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<strong\b[^>]*>/gi, '<b>')
+    .replace(/<\/strong\s*>/gi, '</b>')
+    .replace(/<em\b[^>]*>/gi, '<i>')
+    .replace(/<\/em\s*>/gi, '</i>')
+    .replace(/<strike\b[^>]*>/gi, '<s>')
+    .replace(/<\/strike\s*>/gi, '</s>')
+    .replace(/<del\b[^>]*>/gi, '<s>')
+    .replace(/<\/del\s*>/gi, '</s>')
+    .replace(/<p\b[^>]*>/gi, '')
+    .replace(/<\/p\s*>/gi, '\n\n')
+    .replace(/<div\b[^>]*>/gi, '')
+    .replace(/<\/div\s*>/gi, '\n')
+    .replace(/<pre\b([^>]*)class=(['"])language-([^'"]+)\2([^>]*)>/gi, '<pre language="$3">')
+    .replace(/<(?!\/?(?:b|i|code|s|u|pre)\b)[^>]+>/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 
 const buildTitlePayload = (draft: LocalizedDraft): LocalizedText => {
   const next: LocalizedText = {}
@@ -143,126 +130,455 @@ const buildTextPayload = (draft: LocalizedDraft): LocalizedText => {
   for (const code of AVAILABLE_LANGUAGE_CODES) {
     const value = draft[code]
     if (!isRichTextEmpty(value)) {
-      next[code] = value
+      next[code] = normalizeRichTextForRequest(value)
     }
   }
 
   return next
 }
 
-function updateGroupByName(
-  groups: GroupModel[],
-  groupName: string,
-  updater: (group: GroupModel) => GroupModel,
-): GroupModel[] {
-  return groups.map((group) => {
-    if (group.name === groupName) {
-      return updater(new GroupModel(group))
-    }
+const areLocalizedDraftsEqual = (
+  left: LocalizedDraft,
+  right: LocalizedDraft,
+  normalizer: (value: string) => string = (value) => value,
+) =>
+  AVAILABLE_LANGUAGE_CODES.every((code) => normalizer(left[code]) === normalizer(right[code]))
 
-    return new GroupModel({
-      ...group,
-      innerGroups: updateGroupByName(group.innerGroups, groupName, updater),
-    })
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
+  if (savedTheme === 'light' || savedTheme === 'dark') {
+    return savedTheme
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function parseRoute(pathname: string): AppRoute {
+  const normalizedPathname =
+    pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+  const segments = normalizedPathname.split('/').filter(Boolean).map(decodeURIComponent)
+
+  if (!segments.length) {
+    return { type: 'dashboard' }
+  }
+
+  if (segments[0] === 'login') {
+    return { type: 'login' }
+  }
+
+  if (segments[0] === 'statistics') {
+    return { type: 'statistics' }
+  }
+
+  if (segments[0] === 'registration') {
+    return { type: 'registration' }
+  }
+
+  if (segments[0] === 'technical-questions') {
+    return { type: 'technical-questions' }
+  }
+
+  if (segments[0] === 'groups') {
+    return { type: 'groups', path: segments.slice(1) }
+  }
+
+  if (segments[0] === 'questions' && segments[1]) {
+    return { type: 'question', questionId: segments[1] }
+  }
+
+  return { type: 'dashboard' }
+}
+
+function buildRoutePath(route: AppRoute) {
+  switch (route.type) {
+    case 'login':
+      return '/login'
+    case 'dashboard':
+      return '/'
+    case 'statistics':
+      return '/statistics'
+    case 'registration':
+      return '/registration'
+    case 'technical-questions':
+      return '/technical-questions'
+    case 'groups':
+      return route.path.length
+        ? `/groups/${route.path.map(encodeURIComponent).join('/')}`
+        : '/groups'
+    case 'question':
+      return `/questions/${encodeURIComponent(route.questionId)}`
+  }
+}
+
+function localizeTitle(value: LocalizedText | undefined, fallback: string, languageCode = 'ru') {
+  return value?.[languageCode] ?? value?.ru ?? value?.en ?? fallback
+}
+
+function toGroupModel(node: GroupNode | null, groupsByName: CachedGroupMap): GroupModel | null {
+  if (!node) {
+    return null
+  }
+
+  return new GroupModel({
+    name: node.name,
+    title: node.title,
+    parentName: node.parentName,
+    innerGroups: node.childrenNames
+      .map((childName) => groupsByName[childName])
+      .filter((child): child is GroupNode => Boolean(child))
+      .map(
+        (child) =>
+          new GroupModel({
+            name: child.name,
+            title: child.title,
+            parentName: child.parentName,
+            innerGroups: [],
+            questions: [],
+          }),
+      ),
+    questions: node.questions.map((question) => new Question(question)),
   })
 }
 
-function removeGroupByName(groups: GroupModel[], groupName: string): GroupModel[] {
-  return groups
-    .filter((group) => group.name !== groupName)
-    .map(
-      (group) =>
-        new GroupModel({
-          ...group,
-          innerGroups: removeGroupByName(group.innerGroups, groupName),
-        }),
-    )
+function findQuestion(groupsByName: CachedGroupMap, questionId: string): QuestionLookup {
+  for (const group of Object.values(groupsByName)) {
+    const question = group.questions.find((item) => item.questionId === questionId)
+    if (question) {
+      return {
+        question: new Question(question),
+        groupName: group.name,
+      }
+    }
+  }
+
+  return null
 }
 
-function updateQuestionById(
-  groups: GroupModel[],
-  questionId: string,
-  updater: (question: Question) => Question,
-): GroupModel[] {
-  return groups.map(
-    (group) =>
-      new GroupModel({
-        ...group,
-        innerGroups: updateQuestionById(group.innerGroups, questionId, updater),
-        questions: group.questions.map((question) =>
-          question.questionId === questionId ? updater(new Question(question)) : new Question(question),
-        ),
-      }),
+function renameGroupInCache(
+  groupsByName: CachedGroupMap,
+  previousName: string,
+  nextGroup: GroupNode,
+): CachedGroupMap {
+  const previousGroup = groupsByName[previousName]
+  if (!previousGroup) {
+    return groupsByName
+  }
+
+  return Object.fromEntries(
+    Object.entries(groupsByName).map(([name, group]) => {
+      if (name === previousName) {
+        return [
+          nextGroup.name,
+          {
+            ...previousGroup,
+            ...nextGroup,
+            childrenNames: previousGroup.childrenNames,
+            questions: previousGroup.questions.map(
+              (question) =>
+                new Question({
+                  ...question,
+                  parent: nextGroup.name,
+                }),
+            ),
+            isLoaded: previousGroup.isLoaded,
+          } satisfies GroupNode,
+        ]
+      }
+
+      return [
+        name,
+        {
+          ...group,
+          parentName: group.parentName === previousName ? nextGroup.name : group.parentName,
+          childrenNames: group.childrenNames.map((childName) =>
+            childName === previousName ? nextGroup.name : childName,
+          ),
+          questions: group.questions.map((question) =>
+            question.parent === previousName
+              ? new Question({
+                  ...question,
+                  parent: nextGroup.name,
+                })
+              : new Question(question),
+          ),
+        } satisfies GroupNode,
+      ]
+    }),
   )
 }
 
-function removeQuestionById(groups: GroupModel[], questionId: string): GroupModel[] {
-  return groups.map(
-    (group) =>
-      new GroupModel({
+function removeGroupFromCache(groupsByName: CachedGroupMap, groupName: string): CachedGroupMap {
+  if (!groupsByName[groupName]) {
+    return groupsByName
+  }
+
+  const namesToDelete = new Set<string>()
+  const queue = [groupName]
+
+  while (queue.length > 0) {
+    const current = queue.shift()
+    if (!current || namesToDelete.has(current)) {
+      continue
+    }
+
+    namesToDelete.add(current)
+
+    for (const group of Object.values(groupsByName)) {
+      if (group.parentName === current) {
+        queue.push(group.name)
+      }
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(groupsByName)
+      .filter(([name]) => !namesToDelete.has(name))
+      .map(([name, group]) => [
+        name,
+        {
+          ...group,
+          childrenNames: group.childrenNames.filter((childName) => !namesToDelete.has(childName)),
+          questions: group.questions.map((question) => new Question(question)),
+        } satisfies GroupNode,
+      ]),
+  )
+}
+
+function removeQuestionFromCache(groupsByName: CachedGroupMap, questionId: string): CachedGroupMap {
+  return Object.fromEntries(
+    Object.entries(groupsByName).map(([name, group]) => [
+      name,
+      {
         ...group,
-        innerGroups: removeQuestionById(group.innerGroups, questionId),
         questions: group.questions
           .filter((question) => question.questionId !== questionId)
           .map((question) => new Question(question)),
-      }),
+      } satisfies GroupNode,
+    ]),
   )
 }
 
-function findGroup(groups: GroupModel[], groupName: string): GroupModel | null {
-  for (const group of groups) {
-    if (group.name === groupName) {
-      return group
-    }
-
-    const nested = findGroup(group.innerGroups, groupName)
-    if (nested) {
-      return nested
-    }
-  }
-
-  return null
-}
-
-function findQuestion(groups: GroupModel[], questionId: string): Question | null {
-  for (const group of groups) {
-    const found = group.questions.find((question) => question.questionId === questionId)
-    if (found) {
-      return found
-    }
-
-    const nested = findQuestion(group.innerGroups, questionId)
-    if (nested) {
-      return nested
-    }
-  }
-
-  return null
+function updateQuestionInCache(
+  groupsByName: CachedGroupMap,
+  questionId: string,
+  nextQuestion: Question,
+): CachedGroupMap {
+  return Object.fromEntries(
+    Object.entries(groupsByName).map(([name, group]) => [
+      name,
+      {
+        ...group,
+        questions: group.questions.map((question) =>
+          question.questionId === questionId ? new Question(nextQuestion) : new Question(question),
+        ),
+      } satisfies GroupNode,
+    ]),
+  )
 }
 
 function App() {
-  const [theme, setTheme] = useState<Theme>('light')
-  const [groups, setGroups] = useState<GroupModel[]>(() => cloneGroups(initialGroups))
-  const [uiMessages, setUiMessages] = useState<UiMessage[]>(() =>
-    initialUiMessages.map((item) => new UiMessage(item)),
-  )
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme())
+  const [groupsByName, setGroupsByName] = useState<CachedGroupMap>({})
+  const [rootGroupName, setRootGroupName] = useState<string | null>(null)
+  const [uiMessages, setUiMessages] = useState<UiMessage[]>([])
+  const [route, setRoute] = useState<AppRoute>(() => parseRoute(window.location.pathname))
   const [modal, setModal] = useState<ModalState>(null)
   const [languageCode, setLanguageCode] = useState<LanguageCode>('ru')
   const [titleValues, setTitleValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
   const [textValues, setTextValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const lastGroupsPathRef = useRef<string[]>([])
+  const groupsByNameRef = useRef<CachedGroupMap>({})
+  const rootGroupNameRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    groupsByNameRef.current = groupsByName
+  }, [groupsByName])
+
+  useEffect(() => {
+    rootGroupNameRef.current = rootGroupName
+  }, [rootGroupName])
+
+  const navigate = (nextRoute: AppRoute, options?: { replace?: boolean }) => {
+    const nextPath = buildRoutePath(nextRoute)
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+
+    if (currentPath !== nextPath) {
+      if (options?.replace) {
+        window.history.replaceState(null, '', nextPath)
+      } else {
+        window.history.pushState(null, '', nextPath)
+      }
+    }
+
+    setRoute(nextRoute)
+  }
+
+  const mergeGroups = (groups: GroupNode[]) => {
+    setGroupsByName((current) => {
+      const next = { ...current }
+
+      for (const group of groups) {
+        const existing = next[group.name]
+        next[group.name] = {
+          ...existing,
+          ...group,
+          title: group.title ?? existing?.title ?? {},
+          parentName: group.parentName ?? existing?.parentName ?? '',
+          childrenNames: group.childrenNames ?? existing?.childrenNames ?? [],
+          questions: group.questions ?? existing?.questions ?? [],
+          isLoaded: group.isLoaded ?? existing?.isLoaded ?? false,
+        }
+      }
+
+      return next
+    })
+  }
+
+  const ensureGroupLoaded = async (groupName: string, options?: { force?: boolean }) => {
+    const force = options?.force ?? false
+    const current = groupsByNameRef.current[groupName]
+
+    if (current?.isLoaded && !force) {
+      return current
+    }
+
+    const group = await fetchGroup(groupName)
+    mergeGroups([group])
+
+    if (group.childrenNames.length > 0) {
+      mergeGroups(await fetchInnerGroups(group.name))
+    }
+
+    return group
+  }
+
+  const ensureStartGroupLoaded = async () => {
+    const startGroup = await fetchStartGroup()
+    setRootGroupName(startGroup.name)
+    mergeGroups([startGroup])
+
+    if (startGroup.childrenNames.length > 0) {
+      mergeGroups(await fetchInnerGroups(startGroup.name))
+    }
+
+    return startGroup
+  }
+
+  const ensurePathLoaded = async (path: string[]) => {
+    const rootName = rootGroupNameRef.current
+    if (!rootName) {
+      return []
+    }
+
+    let parentName = rootName
+    const normalizedPath: string[] = []
+
+    for (const groupName of path) {
+      const parentGroup = await ensureGroupLoaded(parentName)
+      if (!parentGroup.childrenNames.includes(groupName)) {
+        break
+      }
+
+      await ensureGroupLoaded(groupName)
+      normalizedPath.push(groupName)
+      parentName = groupName
+    }
+
+    return normalizedPath
+  }
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
 
+  useEffect(() => {
+    const handlePopState = () => setRoute(parseRoute(window.location.pathname))
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  useEffect(() => {
+    void loadData()
+  }, [])
+
+  useEffect(() => {
+    if (route.type === 'groups') {
+      lastGroupsPathRef.current = route.path
+    }
+  }, [route])
+
+  useEffect(() => {
+    if (route.type !== 'groups' || !rootGroupName) {
+      return
+    }
+
+    let isCancelled = false
+
+    void (async () => {
+      try {
+        const normalizedPath = await ensurePathLoaded(route.path)
+        if (isCancelled) {
+          return
+        }
+
+        if (
+          normalizedPath.length !== route.path.length
+          || normalizedPath.some((groupName, index) => groupName !== route.path[index])
+        ) {
+          navigate({ type: 'groups', path: normalizedPath }, { replace: true })
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setErrorMessage(getErrorMessage(error))
+        }
+      }
+    })()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [rootGroupName, route])
+
+  const rootGroup = useMemo(
+    () => (rootGroupName ? toGroupModel(groupsByName[rootGroupName] ?? null, groupsByName) : null),
+    [groupsByName, rootGroupName],
+  )
+  const currentGroupName =
+    route.type === 'groups' && route.path.length > 0
+      ? route.path[route.path.length - 1]
+      : rootGroupName
   const currentGroup = useMemo(
-    () => (modal && 'groupName' in modal ? findGroup(groups, modal.groupName) : null),
-    [groups, modal],
+    () => (currentGroupName ? toGroupModel(groupsByName[currentGroupName] ?? null, groupsByName) : null),
+    [currentGroupName, groupsByName],
   )
-  const currentQuestion = useMemo(
-    () => (modal && 'questionId' in modal ? findQuestion(groups, modal.questionId) : null),
-    [groups, modal],
-  )
+  const currentModalGroup = useMemo(() => {
+    if (!modal || !('groupName' in modal)) {
+      return null
+    }
+
+    return toGroupModel(groupsByName[modal.groupName] ?? null, groupsByName)
+  }, [groupsByName, modal])
+  const currentQuestionLookup = useMemo(() => {
+    if (route.type === 'question') {
+      return findQuestion(groupsByName, route.questionId)
+    }
+
+    if (modal && 'questionId' in modal) {
+      return findQuestion(groupsByName, modal.questionId)
+    }
+
+    return null
+  }, [groupsByName, modal, route])
+  const currentQuestion = currentQuestionLookup?.question ?? null
   const currentUiMessage = useMemo(
     () =>
       modal && 'messageName' in modal
@@ -270,6 +586,21 @@ function App() {
         : null,
     [modal, uiMessages],
   )
+  const groupsPath = route.type === 'groups' ? route.path : []
+  const breadcrumbs = useMemo(() => {
+    const items: BreadcrumbItem[] = [{ label: 'Главное меню', path: [] }]
+
+    for (let index = 0; index < groupsPath.length; index += 1) {
+      const groupName = groupsPath[index]
+      const group = groupsByName[groupName]
+      items.push({
+        label: localizeTitle(group?.title, groupName, 'ru'),
+        path: groupsPath.slice(0, index + 1),
+      })
+    }
+
+    return items
+  }, [groupsByName, groupsPath])
 
   useEffect(() => {
     if (!modal) {
@@ -280,12 +611,8 @@ function App() {
 
     switch (modal.type) {
       case 'edit-group':
-        setTitleValues(createLocalizedDraft(currentGroup?.title))
+        setTitleValues(createLocalizedDraft(currentModalGroup?.title))
         setTextValues(createEmptyLocalizedDraft())
-        break
-      case 'edit-question':
-        setTitleValues(createLocalizedDraft(currentQuestion?.title))
-        setTextValues(createLocalizedDraft(currentQuestion?.text))
         break
       case 'edit-ui-message':
         setTitleValues(createEmptyLocalizedDraft())
@@ -307,25 +634,60 @@ function App() {
         setTextValues(createEmptyLocalizedDraft())
         break
     }
-  }, [currentGroup, currentQuestion, currentUiMessage, modal])
+  }, [currentModalGroup, currentUiMessage, modal])
 
-  const closeModal = () => setModal(null)
+  async function loadData(options?: { silent?: boolean }) {
+    const silent = options?.silent ?? false
 
-  const updateUiMessage = (messageName: string, updater: (item: UiMessage) => UiMessage) => {
-    setUiMessages((current) =>
-      current.map((item) =>
-        item.name === messageName ? updater(new UiMessage(item)) : new UiMessage(item),
-      ),
-    )
+    setErrorMessage('')
+    if (!silent) {
+      setIsLoading(true)
+    }
+
+    try {
+      const [data] = await Promise.all([fetchAdminData(), ensureStartGroupLoaded()])
+      setUiMessages(data.uiMessages)
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error))
+    } finally {
+      if (!silent) {
+        setIsLoading(false)
+      }
+    }
+  }
+
+  const closeModal = () => {
+    if (isSubmitting) {
+      return
+    }
+
+    setModal(null)
   }
 
   const titleValue = titleValues[languageCode]
   const textValue = textValues[languageCode] || '<p></p>'
   const currentUiMessageDescription =
-    currentUiMessage?.description[languageCode] ??
-    currentUiMessage?.description.ru ??
-    currentUiMessage?.description.en ??
-    ''
+    currentUiMessage?.description[languageCode]
+    ?? currentUiMessage?.description.ru
+    ?? currentUiMessage?.description.en
+    ?? ''
+  const isEditGroupUnchanged =
+    modal?.type === 'edit-group'
+      && areLocalizedDraftsEqual(titleValues, createLocalizedDraft(currentModalGroup?.title), (value) =>
+        value.trim(),
+      )
+  const isEditUiMessageUnchanged =
+    modal?.type === 'edit-ui-message'
+      && areLocalizedDraftsEqual(textValues, createLocalizedDraft(currentUiMessage?.text), (value) =>
+        normalizeRichTextForRequest(value),
+      )
+  const isConfirmDisabled =
+    isSubmitting
+    || (modal?.type === 'edit-group' && isEditGroupUnchanged)
+    || (modal?.type === 'edit-ui-message' && isEditUiMessageUnchanged)
+    || ((modal?.type === 'create-group' || modal?.type === 'create-question') && !titleValues.ru.trim())
+    || (modal?.type === 'edit-group' && !titleValues.ru.trim())
+    || (modal?.type === 'edit-ui-message' && isRichTextEmpty(textValue))
 
   const setTitleValue = (value: string) =>
     setTitleValues((current) => ({
@@ -339,7 +701,7 @@ function App() {
       [languageCode]: value,
     }))
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!modal) {
       return
     }
@@ -347,104 +709,209 @@ function App() {
     const titles = buildTitlePayload(titleValues)
     const texts = buildTextPayload(textValues)
     const requiredRussianTitle = titleValues.ru.trim()
+    setErrorMessage('')
+    setIsSubmitting(true)
 
-    switch (modal.type) {
-      case 'edit-group':
-        if (!requiredRussianTitle) return
-        setGroups((current) =>
-          updateGroupByName(current, modal.groupName, (group) =>
-            new GroupModel({
-              ...group,
-              title: { ...group.title, ...titles },
-            }),
-          ),
-        )
-        closeModal()
-        return
-      case 'create-group':
-        if (!requiredRussianTitle) return
-        setGroups((current) =>
-          updateGroupByName(current, modal.groupName, (group) =>
-            new GroupModel({
-              ...group,
-              innerGroups: [
-                ...group.innerGroups,
-                new GroupModel({
-                  name: slugify(requiredRussianTitle) || `group-${Date.now()}`,
-                  parentName: group.name,
-                  title: titles,
-                }),
-              ],
-            }),
-          ),
-        )
-        closeModal()
-        return
-      case 'create-question':
-        if (!requiredRussianTitle) return
-        setGroups((current) =>
-          updateGroupByName(current, modal.groupName, (group) =>
-            new GroupModel({
-              ...group,
-              questions: [
-                ...group.questions,
-                new Question({
-                  questionId: slugify(requiredRussianTitle) || `question-${Date.now()}`,
-                  name: slugify(requiredRussianTitle) || `question-${Date.now()}`,
-                  parent: group.name,
-                  title: titles,
-                  text: texts,
-                }),
-              ],
-            }),
-          ),
-        )
-        closeModal()
-        return
-      case 'delete-group':
-        setGroups((current) => removeGroupByName(current, modal.groupName))
-        closeModal()
-        return
-      case 'edit-question':
-        if (!requiredRussianTitle) return
-        setGroups((current) =>
-          updateQuestionById(current, modal.questionId, (question) =>
-            new Question({
-              ...question,
-              title: { ...question.title, ...titles },
-              text: { ...question.text, ...texts },
-            }),
-          ),
-        )
-        closeModal()
-        return
-      case 'delete-question':
-        setGroups((current) => removeQuestionById(current, modal.questionId))
-        closeModal()
-        return
-      case 'edit-ui-message':
-        if (isRichTextEmpty(textValue)) return
-        updateUiMessage(modal.messageName, (message) =>
-          new UiMessage({
-            ...message,
-            text: { ...message.text, ...texts },
-          }),
-        )
-        closeModal()
-        return
-      default:
-        return
+    try {
+      switch (modal.type) {
+        case 'edit-group':
+          if (!requiredRussianTitle) return
+          {
+            const updatedGroup = mapGroupDto(await updateGroupTitle(modal.groupName, titles))
+            setGroupsByName((current) => renameGroupInCache(current, modal.groupName, updatedGroup))
+            if (rootGroupNameRef.current === modal.groupName) {
+              setRootGroupName(updatedGroup.name)
+            }
+            if (route.type === 'groups') {
+              navigate(
+                {
+                  type: 'groups',
+                  path: route.path.map((groupName) =>
+                    groupName === modal.groupName ? updatedGroup.name : groupName,
+                  ),
+                },
+                { replace: true },
+              )
+            }
+            setModal(null)
+          }
+          break
+        case 'create-group':
+          if (!requiredRussianTitle) return
+          {
+            const createdGroup = mapGroupDto(await createGroup(modal.groupName, titles))
+            setGroupsByName((current) => {
+              const parent = current[modal.groupName]
+              if (!parent) {
+                return current
+              }
+
+              return {
+                ...current,
+                [createdGroup.name]: createdGroup,
+                [modal.groupName]: {
+                  ...parent,
+                  childrenNames: [...parent.childrenNames, createdGroup.name],
+                },
+              }
+            })
+            setModal(null)
+          }
+          break
+        case 'create-question':
+          if (!requiredRussianTitle) return
+          {
+            const optimisticId = slugify(requiredRussianTitle) || `question-${Date.now()}`
+            setGroupsByName((current) => {
+              const group = current[modal.groupName]
+              if (!group) {
+                return current
+              }
+
+              return {
+                ...current,
+                [modal.groupName]: {
+                  ...group,
+                  questions: [
+                    ...group.questions,
+                    new Question({
+                      questionId: optimisticId,
+                      name: optimisticId,
+                      parent: group.name,
+                      title: titles,
+                      text: texts,
+                    }),
+                  ],
+                },
+              }
+            })
+            setModal(null)
+            await createQuestion(modal.groupName, titles, texts)
+            await ensureGroupLoaded(modal.groupName, { force: true })
+          }
+          break
+        case 'delete-group':
+          await deleteGroup(modal.groupName)
+          setGroupsByName((current) => removeGroupFromCache(current, modal.groupName))
+          if (route.type === 'groups') {
+            const deletedIndex = route.path.indexOf(modal.groupName)
+            if (deletedIndex !== -1) {
+              navigate({ type: 'groups', path: route.path.slice(0, deletedIndex) }, { replace: true })
+            }
+          }
+          setModal(null)
+          break
+        case 'delete-question':
+          if (!currentQuestion) return
+          await deleteQuestion(currentQuestion.name)
+          setGroupsByName((current) => removeQuestionFromCache(current, modal.questionId))
+          setModal(null)
+          break
+        case 'edit-ui-message':
+          if (isRichTextEmpty(textValue)) return
+          {
+            const updatedMessage = mapUiMessage(await updateUiMessageRequest(modal.messageName, texts))
+            setUiMessages((current) =>
+              current.map((message) =>
+                message.name === modal.messageName ? updatedMessage : new UiMessage(message),
+              ),
+            )
+            setModal(null)
+          }
+          break
+        default:
+          return
+      }
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSaveQuestion = async (
+    questionId: string,
+    title: LocalizedText,
+    text: LocalizedText,
+  ) => {
+    const questionLookup = findQuestion(groupsByNameRef.current, questionId)
+    if (!questionLookup) {
+      return
+    }
+
+    setErrorMessage('')
+    setIsSubmitting(true)
+
+    try {
+      const updatedQuestion = mapQuestion(await updateQuestion(questionLookup.question.name, title, text))
+      setGroupsByName((current) => updateQuestionInCache(current, questionId, updatedQuestion))
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteQuestionFromPage = async (questionId: string) => {
+    const questionLookup = findQuestion(groupsByNameRef.current, questionId)
+    if (!questionLookup) {
+      navigate({ type: 'groups', path: lastGroupsPathRef.current }, { replace: true })
+      return
+    }
+
+    setErrorMessage('')
+    setIsSubmitting(true)
+
+    try {
+      await deleteQuestion(questionLookup.question.name)
+      setGroupsByName((current) => removeQuestionFromCache(current, questionId))
+      navigate({ type: 'groups', path: lastGroupsPathRef.current }, { replace: true })
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const themeIcon = theme === 'light' ? sunIcon : moonIcon
   const themeLabel =
     theme === 'light' ? 'Переключить на тёмную тему' : 'Переключить на светлую тему'
+  const isTranslationRoute =
+    route.type === 'dashboard'
+    || route.type === 'technical-questions'
+    || route.type === 'groups'
+    || route.type === 'question'
 
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="topbar__title">Админская панель</div>
+
+        {route.type !== 'login' && (
+          <div className="topbar__nav">
+            <button
+              className={`topbar__nav-link ${isTranslationRoute ? 'topbar__nav-link_active' : ''}`}
+              type="button"
+              onClick={() => navigate({ type: 'dashboard' })}
+            >
+              Перевод
+            </button>
+            <button
+              className={`topbar__nav-link ${route.type === 'statistics' ? 'topbar__nav-link_active' : ''}`}
+              type="button"
+              onClick={() => navigate({ type: 'statistics' })}
+            >
+              Статистика
+            </button>
+            <button
+              className={`topbar__nav-link ${route.type === 'registration' ? 'topbar__nav-link_active' : ''}`}
+              type="button"
+              onClick={() => navigate({ type: 'registration' })}
+            >
+              Регистрация
+            </button>
+          </div>
+        )}
 
         <div className="topbar__actions">
           <button
@@ -457,52 +924,84 @@ function App() {
             <img src={themeIcon} alt="" aria-hidden="true" />
           </button>
 
-          <button className="topbar__profile" type="button" aria-label="Профиль">
-            <img src={userIcon} alt="" aria-hidden="true" />
-            <span>Профиль</span>
-          </button>
+          {route.type !== 'login' && (
+            <button
+              className="topbar__profile"
+              type="button"
+              aria-label="Выход из профиля"
+              onClick={() => navigate({ type: 'login' })}
+            >
+              <img src={userIcon} alt="" aria-hidden="true" />
+              <span>Выход из профиля</span>
+            </button>
+          )}
         </div>
       </header>
 
-      <AdminPage
-        groups={groups}
-        uiMessages={uiMessages}
-        langCode="ru"
-        onEditGroup={(groupName) => setModal({ type: 'edit-group', groupName })}
-        onAddChild={(groupName) => setModal({ type: 'select-add-child', groupName })}
-        onDeleteGroup={(groupName) => setModal({ type: 'delete-group', groupName })}
-        onEditQuestion={(questionId) => setModal({ type: 'edit-question', questionId })}
-        onDeleteQuestion={(questionId) => setModal({ type: 'delete-question', questionId })}
-        onEditUiMessage={(messageName) => setModal({ type: 'edit-ui-message', messageName })}
-      />
+      {route.type !== 'question' && route.type !== 'login' && errorMessage && (
+        <div className="app-status app-status_error">{errorMessage}</div>
+      )}
+      {isLoading && route.type !== 'login' && <div className="app-status">Loading data...</div>}
+
+      {route.type === 'login' && <LoginPage />}
+
+      {!isLoading && route.type === 'dashboard' && (
+        <DashboardPage
+          onOpenTechnicalQuestions={() => navigate({ type: 'technical-questions' })}
+          onOpenGroups={() => navigate({ type: 'groups', path: [] })}
+        />
+      )}
+
+      {!isLoading && route.type === 'statistics' && <StatisticsPage langCode="ru" />}
+
+      {!isLoading && route.type === 'registration' && <RegistrationPage />}
+
+      {!isLoading && route.type === 'technical-questions' && (
+        <TechnicalQuestionsPage
+          uiMessages={uiMessages}
+          langCode="ru"
+          onBack={() => navigate({ type: 'dashboard' })}
+          onEditUiMessage={(messageName) => setModal({ type: 'edit-ui-message', messageName })}
+        />
+      )}
+
+      {!isLoading && route.type === 'groups' && (
+        <AdminPage
+          currentGroup={currentGroup ?? rootGroup}
+          langCode="ru"
+          currentFolderPath={route.path}
+          breadcrumbs={breadcrumbs}
+          onGoHome={() => navigate({ type: 'dashboard' })}
+          onNavigateToPath={(path) => navigate({ type: 'groups', path })}
+          onOpenGroup={(groupName) => navigate({ type: 'groups', path: [...route.path, groupName] })}
+          onOpenQuestion={(questionId) => navigate({ type: 'question', questionId })}
+          onGoBack={() =>
+            route.path.length === 0
+              ? navigate({ type: 'dashboard' })
+              : navigate({ type: 'groups', path: route.path.slice(0, -1) })
+          }
+          onEditGroup={(groupName) => setModal({ type: 'edit-group', groupName })}
+          onCreateGroup={(groupName) => setModal({ type: 'create-group', groupName })}
+          onCreateQuestion={(groupName) => setModal({ type: 'create-question', groupName })}
+          onDeleteGroup={(groupName) => setModal({ type: 'delete-group', groupName })}
+          onDeleteQuestion={(questionId) => setModal({ type: 'delete-question', questionId })}
+        />
+      )}
+
+      {!isLoading && route.type === 'question' && (
+        <QuestionEditorPage
+          question={currentQuestion}
+          langCode="ru"
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+          onBack={() => navigate({ type: 'groups', path: lastGroupsPathRef.current })}
+          onSave={handleSaveQuestion}
+          onDelete={handleDeleteQuestionFromPage}
+        />
+      )}
 
       {modal && (
-        <OverlayModal
-          title={getModalTitle(modal)}
-          onClose={closeModal}
-          compact={modal.type === 'select-add-child'}
-        >
-          {modal.type === 'select-add-child' && (
-            <div className="modal-form modal-form_compact">
-              <div className="modal-form__choice-grid modal-form__choice-grid_compact">
-                <button
-                  className="modal-form__choice"
-                  type="button"
-                  onClick={() => setModal({ type: 'create-group', groupName: modal.groupName })}
-                >
-                  Группу
-                </button>
-                <button
-                  className="modal-form__choice"
-                  type="button"
-                  onClick={() => setModal({ type: 'create-question', groupName: modal.groupName })}
-                >
-                  Вопрос
-                </button>
-              </div>
-            </div>
-          )}
-
+        <OverlayModal title={getModalTitle(modal)} onClose={closeModal}>
           {modal.type === 'delete-group' && (
             <ConfirmBody text="Точно ли вы хотите удалить эту группу?" onConfirm={handleConfirm} />
           )}
@@ -520,7 +1019,7 @@ function App() {
                 onChange={setTitleValue}
                 required={languageCode === 'ru'}
               />
-              <ModalActions onConfirm={handleConfirm} />
+              <ModalActions onConfirm={handleConfirm} disabled={isConfirmDisabled} />
             </div>
           )}
 
@@ -534,7 +1033,7 @@ function App() {
                 onChange={setTextValue}
                 required={languageCode === 'ru'}
               />
-              <ModalActions onConfirm={handleConfirm} />
+              <ModalActions onConfirm={handleConfirm} disabled={isConfirmDisabled} />
             </div>
           )}
 
@@ -551,30 +1050,21 @@ function App() {
                 <span className="modal-form__label">Текст вопроса</span>
                 <RichTextEditor value={textValue} onChange={setTextValue} />
               </div>
-              <ModalActions onConfirm={handleConfirm} />
-            </div>
-          )}
-
-          {modal.type === 'edit-question' && (
-            <div className="modal-form">
-              <LanguageDropdown value={languageCode} onChange={setLanguageCode} />
-              <TextField
-                label="Название вопроса"
-                value={titleValue}
-                onChange={setTitleValue}
-                required={languageCode === 'ru'}
-              />
-              <div className="modal-form__field">
-                <span className="modal-form__label">Текст вопроса</span>
-                <RichTextEditor value={textValue} onChange={setTextValue} />
-              </div>
-              <ModalActions onConfirm={handleConfirm} />
+              <ModalActions onConfirm={handleConfirm} disabled={isConfirmDisabled} />
             </div>
           )}
         </OverlayModal>
       )}
     </div>
   )
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message
+  }
+
+  return 'Request failed'
 }
 
 type TextFieldProps = {
@@ -689,10 +1179,10 @@ function LanguageDropdown({
   )
 }
 
-function ModalActions({ onConfirm }: { onConfirm: () => void }) {
+function ModalActions({ onConfirm, disabled = false }: { onConfirm: () => void; disabled?: boolean }) {
   return (
     <div className="modal-form__actions">
-      <button className="modal-form__button" type="button" onClick={onConfirm}>
+      <button className="modal-form__button" type="button" onClick={onConfirm} disabled={disabled}>
         Подтвердить
       </button>
     </div>
@@ -712,16 +1202,12 @@ function getModalTitle(modal: Exclude<ModalState, null>) {
   switch (modal.type) {
     case 'edit-group':
       return 'Изменить группу'
-    case 'select-add-child':
-      return 'Что вы хотите добавить?'
     case 'create-group':
       return 'Создать группу'
     case 'create-question':
       return 'Создать вопрос'
     case 'delete-group':
       return 'Удаление группы'
-    case 'edit-question':
-      return 'Изменить вопрос'
     case 'delete-question':
       return 'Удаление вопроса'
     case 'edit-ui-message':

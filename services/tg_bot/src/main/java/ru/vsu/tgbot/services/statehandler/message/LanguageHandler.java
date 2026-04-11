@@ -9,9 +9,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.model.dto.LanguageDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.UiMessageControl;
-import ru.vsu.tgbot.services.core.LanguageService;
-import ru.vsu.tgbot.services.core.UserService;
+import ru.vsu.tgbot.services.business.UiMessageService;
+import ru.vsu.tgbot.services.core.LanguageClient;
+import ru.vsu.tgbot.services.core.UserClient;
 import ru.vsu.tgbot.util.*;
 
 import java.util.List;
@@ -21,14 +21,14 @@ import java.util.List;
 @AllArgsConstructor
 public class LanguageHandler implements MessageStateHandler {
     public static final int LANGUAGE_ROW_SIZE = 1;
-    private final LanguageService languageService;
-    private final UserService userService;
-    private final UiMessageControl uiMessageService;
+    private final LanguageClient languageClient;
+    private final UserClient userClient;
+    private final UiMessageService uiMessageService;
 
     @Override
     public SendMessage answer(SessionDto sessionDto) {
         sessionDto.setBotState(BotState.LISTEN);
-        List<LanguageDto> availableLanguages = languageService.getLanguages();
+        List<LanguageDto> availableLanguages = languageClient.getLanguages();
 
         if (availableLanguages.isEmpty()) {
             throw new RuntimeException();
@@ -53,7 +53,7 @@ public class LanguageHandler implements MessageStateHandler {
     public boolean listen(SessionDto sessionDto) {
         sessionDto.setGlobalState(MainMenuState.CREATE);
 
-        List<LanguageDto> availableLanguages = languageService.getLanguages();
+        List<LanguageDto> availableLanguages = languageClient.getLanguages();
         String text = MessageUtil.extractUserInput(sessionDto.getUpdate());
 
         if (availableLanguages.isEmpty() || text == null) {
@@ -68,7 +68,7 @@ public class LanguageHandler implements MessageStateHandler {
 
         sessionDto.setLangCode(language.code());
         sessionDto.setMessageState(MessageState.NOTHING);
-        userService.updateLangCode(sessionDto.getChatId(), language.code());
+        userClient.updateLangCode(sessionDto.getChatId(), language.code());
 
         return true;
     }

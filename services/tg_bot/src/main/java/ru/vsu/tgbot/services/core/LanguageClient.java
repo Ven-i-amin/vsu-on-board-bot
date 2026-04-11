@@ -4,6 +4,6 @@ import ru.vsu.tgbot.model.dto.LanguageDto;
 
 import java.util.List;
 
-public interface LanguageService {
+public interface LanguageClient {
     List<LanguageDto> getLanguages();
 }

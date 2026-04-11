@@ -21,7 +21,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash(value = "session", timeToLive = Session.TIME_TO_LIVE)
+@RedisHash(value = "sessions", timeToLive = Session.TIME_TO_LIVE)
 public class Session {
     @Value("${redis.session.timespan}")
     public static final int TIME_TO_LIVE = 120;
@@ -34,7 +34,6 @@ public class Session {
     private MessageState messageState;
     @NotNull
     private MainMenuState globalState;
-    private GroupDto start;
     @NotNull
     @Builder.Default
     private List<GroupDto> groupWindow = new ArrayList<>();

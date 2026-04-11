@@ -1,9 +1,7 @@
 package ru.vsu.tgbot.components.bot;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
@@ -15,17 +13,14 @@ import ru.vsu.tgbot.services.business.QueryService;
 @Slf4j
 @Component
 @ConditionalOnProperty(name = "telegram.bot.mode", havingValue = "long-polling")
-@RequiredArgsConstructor
-public class TelegramLongPollingRunner implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
-    @Value("${telegram.bot.token}")
-    private String token;
-
-    @Autowired
-    private QueryService queryService;
+@AllArgsConstructor
+public class LongPollingHandler implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
+    private final String telegramToken;
+    private final QueryService queryService;
 
     @Override
     public String getBotToken() {
-        return token;
+        return telegramToken;
     }
 
     @Override

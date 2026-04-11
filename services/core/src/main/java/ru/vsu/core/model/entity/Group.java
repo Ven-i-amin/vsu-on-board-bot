@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -21,5 +22,6 @@ public class Group {
     @Indexed(unique=true)
     private String name;
     private Map<String, String> title;
-    private String parentName;
+    private Integer depthLevel;
+    private List<String> path;
 }

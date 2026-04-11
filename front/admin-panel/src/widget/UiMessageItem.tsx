@@ -1,6 +1,6 @@
-import './Group.css'
-import circleIcon from '../assets/fi-rr-circle-small.svg'
-import pencil from '../assets/fi-rr-pencil.svg'
+import '../pages/AdminPage.css'
+import fileIcon from '../assets/fi-rs-document.svg'
+import pencilIcon from '../assets/fi-rr-pencil.svg'
 import type { UiMessage } from '../entities/models'
 
 type UiMessageItemProps = {
@@ -10,24 +10,38 @@ type UiMessageItemProps = {
 }
 
 function UiMessageItem({ message, langCode = 'ru', onEdit }: UiMessageItemProps) {
-  const title = message.text[langCode] ?? message.text.en ?? message.name
+  const title = message.text[langCode] ?? message.text.ru ?? message.text.en ?? message.name
 
   return (
-    <div className="ui-message">
-      <div className="ui-message__header">
-        <div className="ui-message__marker" aria-hidden="true">
-          <img src={circleIcon} alt="" />
-        </div>
+    <div
+      className="browser__item browser__item_muted"
+      role="button"
+      tabIndex={0}
+      onClick={() => onEdit(message.name)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onEdit(message.name)
+        }
+      }}
+    >
+      <div className="browser__item-main">
+        <img className="browser__item-icon" src={fileIcon} alt="" aria-hidden="true" />
+        <span className="browser__item-label">{title}</span>
+      </div>
 
-        <h3 className="ui-message__title" lang={langCode}>
-          {title}
-        </h3>
-
-        <div className="ui-message__actions">
-          <button className="ui-message__action" type="button" aria-label="Edit ui message" onClick={() => onEdit(message.name)}>
-            <img src={pencil} alt="" aria-hidden="true" />
-          </button>
-        </div>
+      <div className="browser__item-actions">
+        <button
+          className="browser__item-action"
+          type="button"
+          aria-label="Редактировать технический вопрос"
+          onClick={(event) => {
+            event.stopPropagation()
+            onEdit(message.name)
+          }}
+        >
+          <img src={pencilIcon} alt="" aria-hidden="true" />
+        </button>
       </div>
     </div>
   )

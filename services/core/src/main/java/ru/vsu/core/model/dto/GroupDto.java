@@ -1,5 +1,6 @@
 package ru.vsu.core.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 
 import java.util.List;
@@ -10,6 +11,9 @@ public record GroupDto(
         String groupId,
         String name,
         Map<String, String> title,
-        String parentName
+        String parentName,
+        @JsonIgnore
+        List<String> path,
+        Long depthLevel
 ) {
 }

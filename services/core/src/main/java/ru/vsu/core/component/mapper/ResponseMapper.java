@@ -15,14 +15,14 @@ import java.util.List;
 public interface ResponseMapper {
     ResponseMapper INSTANCE = Mappers.getMapper(ResponseMapper.class);
 
-    @Mapping(target = "innerGroups", expression = "java( toResponse(group.innerGroups()) )")
+    @Mapping(target = "childrenNames", expression = "java( toResponse(group.childrenNames()) )")
     @Mapping(target = "questions", expression = "java(group.questions() == null ? java.util.List.of() : group.questions().stream().map(this::toResponse).toList())")
-    GroupResponseDto toResponse(GroupTreeDto group);
+    GroupResponseDto toResponse(GroupResponse group);
 
-    List<GroupResponseDto> toResponse(List<GroupTreeDto> groups);
+    List<GroupResponseDto> toResponse(List<GroupResponse> groups);
 
     @Mapping(target = "name", source = "name")
-    @Mapping(target = "innerGroups", ignore = true)
+    @Mapping(target = "childrenNames", ignore = true)
     @Mapping(target = "questions", ignore = true)
     GroupResponseDto toShallowResponse(GroupDto group);
 

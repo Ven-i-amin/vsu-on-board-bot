@@ -7,8 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.GroupWindowService;
-import ru.vsu.tgbot.services.business.UiMessageControl;
+import ru.vsu.tgbot.services.business.GroupService;
+import ru.vsu.tgbot.services.business.UiMessageService;
 import ru.vsu.tgbot.util.*;
 
 import java.util.List;
@@ -18,15 +18,15 @@ import java.util.List;
 public class MainMenuHandlerImpl implements MainMenuHandler {
     public static final int MAIN_LANGUAGE_ROW_SIZE = 1;
     public static final int MAIN_GROUP_ROW_SIZE = 2;
-    private UiMessageControl uiMessageControl;
-    private GroupWindowService groupWindowService;
+    private UiMessageService uiMessageService;
+    private GroupService groupService;
 
     @Override
     public SendMessage create(SessionDto sessionDto) {
         sessionDto.setGlobalState(MainMenuState.LISTEN);
 
         List<KeyboardRow> keyboardRows = MessageUtil.createButtonColumn(
-                List.of(uiMessageControl.getUiMessageText(
+                List.of(uiMessageService.getUiMessageText(
                         UiMessageName.LANGUAGE_TITLE,
                         sessionDto.getLangCode())
                 ),
@@ -44,7 +44,7 @@ public class MainMenuHandlerImpl implements MainMenuHandler {
 
         return SendMessage.builder()
                 .chatId(sessionDto.getChatId())
-                .text(uiMessageControl.getUiMessageText(
+                .text(uiMessageService.getUiMessageText(
                         UiMessageName.MAIN_MENU,
                         sessionDto.getLangCode())
                 )
@@ -73,8 +73,8 @@ public class MainMenuHandlerImpl implements MainMenuHandler {
             sessionDto.setBotState(BotState.SEND);
             sessionDto.setMessageState(MessageState.GROUP);
 
-            groupWindowService.moveToStart(sessionDto);
-            groupWindowService.moveForward(sessionDto, selectedGroup);
+            groupService.moveToStart(sessionDto);
+            groupService.moveForward(sessionDto, selectedGroup);
             return true;
         }
 
@@ -82,6 +82,6 @@ public class MainMenuHandlerImpl implements MainMenuHandler {
     }
 
     private boolean isLanguageState(String text, SessionDto sessionDto) {
-        return text.equals(uiMessageControl.getUiMessageText(UiMessageName.LANGUAGE_TITLE, sessionDto.getLangCode()));
+        return text.equals(uiMessageService.getUiMessageText(UiMessageName.LANGUAGE_TITLE, sessionDto.getLangCode()));
     }
 }

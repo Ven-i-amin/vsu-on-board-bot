@@ -8,7 +8,7 @@ import lombok.Data;
 public class QuestionLocalizedDto {
     private String questionId;
     private String name;
-    private GroupTreeDto parent;
+    private GroupResponse parent;
     private String title;
     private String text;
 }
