@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 @Builder
-public record GroupNodeDto (
-    String groupId,
+public record GroupWithQuestionsDto(
     String name,
     Map<String, String> title,
     String parentName,
     List<QuestionDto> questions,
-    Long level
+    Long depth
 ) {}

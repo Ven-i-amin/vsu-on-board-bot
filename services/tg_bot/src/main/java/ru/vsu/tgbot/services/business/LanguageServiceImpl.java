@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.vsu.tgbot.model.dto.LanguageDto;
-import ru.vsu.tgbot.services.core.LanguageService;
+import ru.vsu.tgbot.services.core.LanguageClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,10 +12,10 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class LanguageControlImpl implements LanguageControl {
+public class LanguageServiceImpl implements LanguageService {
     private static final long REFRESH_RETRY_DELAY_MILLIS = TimeUnit.SECONDS.toMillis(30);
 
-    private final LanguageService languageService;
+    private final LanguageClient languageClient;
     private final List<LanguageDto> languageList = new ArrayList<>();
     private volatile long nextRefreshAttemptAt;
 
@@ -58,7 +58,7 @@ public class LanguageControlImpl implements LanguageControl {
     }
 
     private void refreshLanguages() {
-        List<LanguageDto> languages = languageService.getLanguages();
+        List<LanguageDto> languages = languageClient.getLanguages();
         languageList.clear();
         languageList.addAll(languages);
         nextRefreshAttemptAt = System.currentTimeMillis() + REFRESH_RETRY_DELAY_MILLIS;

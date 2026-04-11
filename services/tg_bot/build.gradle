@@ -28,6 +28,7 @@ dependencies {
     implementation 'ru.vsu:contract:0.0.1-SNAPSHOT'
 
     implementation 'org.telegram:telegrambots-springboot-longpolling-starter:9.5.0'
+    implementation 'org.telegram:telegrambots-webhook:9.5.0'
     implementation 'org.telegram:telegrambots-client:9.5.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'

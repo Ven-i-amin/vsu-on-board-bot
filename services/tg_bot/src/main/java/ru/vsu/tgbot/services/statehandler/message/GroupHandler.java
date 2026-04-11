@@ -10,8 +10,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.vsu.tgbot.model.dto.GroupDto;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.GroupWindowService;
-import ru.vsu.tgbot.services.business.UiMessageControl;
+import ru.vsu.tgbot.services.business.GroupService;
+import ru.vsu.tgbot.services.business.UiMessageService;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessageName;
@@ -27,8 +27,8 @@ import static ru.vsu.tgbot.util.MessageUtil.createGroupForQuestion;
 @AllArgsConstructor
 public class GroupHandler implements MessageStateHandler {
     public static final int GROUP_ROW_SIZE = 1;
-    private final GroupWindowService groupWindowService;
-    private final UiMessageControl uiMessageService;
+    private final GroupService groupService;
+    private final UiMessageService uiMessageService;
 
     @Override
     public MessageState getState() {
@@ -74,7 +74,7 @@ public class GroupHandler implements MessageStateHandler {
         GroupDto selectedGroup = getSelectedGroup(currentGroup,  userInput);
 
         if (selectedGroup != null) {
-            groupWindowService.moveForward(sessionDto, selectedGroup);
+            groupService.moveForward(sessionDto, selectedGroup);
             return true;
         }
 
@@ -83,13 +83,13 @@ public class GroupHandler implements MessageStateHandler {
         if (selectedQuestion != null) {
             GroupDto questionGroup = createGroupForQuestion(selectedQuestion);
 
-            groupWindowService.moveForward(sessionDto, questionGroup);
+            groupService.moveForward(sessionDto, questionGroup);
             sessionDto.setMessageState(MessageState.QUESTION);
             return true;
         }
 
         if (userInput.equals(UiMessageName.BACK.getValue())) {
-            groupWindowService.moveBackward(sessionDto);
+            groupService.moveBackward(sessionDto);
             return true;
         }
 

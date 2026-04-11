@@ -13,7 +13,7 @@ import ru.vsu.tgbot.model.dto.UserDto;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserClientImpl implements UserClient {
     private WebClient webClient;
     private CoreResponseMapper coreResponseMapper;
 

@@ -7,9 +7,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.vsu.tgbot.model.dto.QuestionDto;
 import ru.vsu.tgbot.model.dto.SessionDto;
-import ru.vsu.tgbot.services.business.GroupWindowService;
+import ru.vsu.tgbot.services.business.GroupService;
 import ru.vsu.tgbot.services.business.QuestionService;
-import ru.vsu.tgbot.services.business.UiMessageControl;
+import ru.vsu.tgbot.services.business.UiMessageService;
 import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
 import ru.vsu.tgbot.util.UiMessageName;
@@ -19,8 +19,8 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class QuestionHandler implements MessageStateHandler {
-    private final GroupWindowService groupWindowService;
-    private final UiMessageControl uiMessageService;
+    private final GroupService groupService;
+    private final UiMessageService uiMessageService;
     private final QuestionService questionService;
 
     @Override
@@ -52,7 +52,7 @@ public class QuestionHandler implements MessageStateHandler {
         }
 
         sessionDto.setMessageState(MessageState.GROUP);
-        groupWindowService.removeLastGroup(sessionDto);
+        groupService.removeLastGroup(sessionDto);
 
         return true;
     }

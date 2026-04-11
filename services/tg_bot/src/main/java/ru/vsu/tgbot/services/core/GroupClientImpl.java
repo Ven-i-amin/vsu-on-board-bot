@@ -15,7 +15,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class GroupServiceImpl implements GroupService {
+public class GroupClientImpl implements GroupClient {
     private final WebClient coreClient;
     private final CoreResponseMapper coreResponseMapper;
 
@@ -42,7 +42,12 @@ public class GroupServiceImpl implements GroupService {
                     .bodyToMono(GroupResponseDto.class)
                     .map(coreResponseMapper::toGroupDto)
                     .block();
-            return group == null ? placeholderGroup(groupName) : group;
+            if (group == null) {
+                return placeholderGroup(groupName);
+            }
+
+            group.setInnerGroups(getInnerGroups(group.getName(), language));
+            return group;
         } catch (RuntimeException ex) {
             log.warn("Failed to fetch group by name {} from core", groupName, ex);
             return placeholderGroup(groupName);
@@ -94,7 +99,12 @@ public class GroupServiceImpl implements GroupService {
                     .bodyToMono(GroupResponseDto.class)
                     .map(coreResponseMapper::toGroupDto)
                     .block();
-            return group == null ? placeholderGroup("start") : group;
+            if (group == null) {
+                return placeholderGroup("start");
+            }
+
+            group.setInnerGroups(getInnerGroups(group.getName(), "ru"));
+            return group;
         } catch (RuntimeException ex) {
             log.warn("Failed to fetch start group from core", ex);
             return placeholderGroup("start");

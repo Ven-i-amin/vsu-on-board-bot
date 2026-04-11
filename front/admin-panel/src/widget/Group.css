@@ -120,12 +120,14 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
+  pointer-events: none;
   transition: grid-template-rows 220ms ease, opacity 220ms ease;
 }
 
 .group__content_open {
   grid-template-rows: 1fr;
   opacity: 1;
+  pointer-events: auto;
 }
 
 .group__content-inner {
