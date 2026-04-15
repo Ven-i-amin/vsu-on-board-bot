@@ -1,9 +1,5 @@
 package ru.vsu.tgbot.model.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.Id;
@@ -17,10 +13,6 @@ import ru.vsu.tgbot.util.BotState;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @RedisHash(value = "sessions", timeToLive = Session.TIME_TO_LIVE)
 public class Session {
     @Value("${redis.session.timespan}")
@@ -35,9 +27,75 @@ public class Session {
     @NotNull
     private MainMenuState globalState;
     @NotNull
-    @Builder.Default
     private List<GroupDto> groupWindow = new ArrayList<>();
     private List<UiMessageResponseDto> uiMessages;
     private Integer lastMessageId;
     private String langCode;
+
+    public Session() {
+    }
+
+    public Long getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(Long chatId) {
+        this.chatId = chatId;
+    }
+
+    public BotState getBotState() {
+        return botState;
+    }
+
+    public void setBotState(BotState botState) {
+        this.botState = botState;
+    }
+
+    public MessageState getMessageState() {
+        return messageState;
+    }
+
+    public void setMessageState(MessageState messageState) {
+        this.messageState = messageState;
+    }
+
+    public MainMenuState getGlobalState() {
+        return globalState;
+    }
+
+    public void setGlobalState(MainMenuState globalState) {
+        this.globalState = globalState;
+    }
+
+    public List<GroupDto> getGroupWindow() {
+        return groupWindow;
+    }
+
+    public void setGroupWindow(List<GroupDto> groupWindow) {
+        this.groupWindow = groupWindow;
+    }
+
+    public List<UiMessageResponseDto> getUiMessages() {
+        return uiMessages;
+    }
+
+    public void setUiMessages(List<UiMessageResponseDto> uiMessages) {
+        this.uiMessages = uiMessages;
+    }
+
+    public Integer getLastMessageId() {
+        return lastMessageId;
+    }
+
+    public void setLastMessageId(Integer lastMessageId) {
+        this.lastMessageId = lastMessageId;
+    }
+
+    public String getLangCode() {
+        return langCode;
+    }
+
+    public void setLangCode(String langCode) {
+        this.langCode = langCode;
+    }
 }

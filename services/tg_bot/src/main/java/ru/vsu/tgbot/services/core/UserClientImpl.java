@@ -1,7 +1,7 @@
 package ru.vsu.tgbot.services.core;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,17 +11,21 @@ import ru.vsu.tgbot.components.mapper.CoreResponseMapper;
 import ru.vsu.tgbot.model.dto.UserDto;
 
 @Service
-@Slf4j
-@AllArgsConstructor
 public class UserClientImpl implements UserClient {
+    private static final Logger log = LoggerFactory.getLogger(UserClientImpl.class);
     private WebClient webClient;
     private CoreResponseMapper coreResponseMapper;
+
+    public UserClientImpl(WebClient webClient, CoreResponseMapper coreResponseMapper) {
+        this.webClient = webClient;
+        this.coreResponseMapper = coreResponseMapper;
+    }
 
     @Override
     public UserDto getUser(Long chatId) {
         try {
             return webClient.get()
-                    .uri("/user/{chatId}", chatId)
+                    .uri("/bot/user/{chatId}", chatId)
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .bodyToMono(UserResponseDto.class)
@@ -42,7 +46,7 @@ public class UserClientImpl implements UserClient {
     public void addUser(UserDto user) {
         try {
             webClient.post()
-                    .uri("/user")
+                    .uri("/bot/user")
                     .bodyValue(coreResponseMapper.toUserResponseDto(user))
                     .retrieve()
                     .bodyToMono(UserResponseDto.class)
@@ -56,7 +60,7 @@ public class UserClientImpl implements UserClient {
     public void updateLangCode(Long chatId, String langCode) {
         try {
             webClient.put()
-                    .uri("/user/{chatId}/langCode", chatId)
+                    .uri("/bot/user/{chatId}/langCode", chatId)
                     .bodyValue(new UserResponseDto(chatId, langCode))
                     .retrieve()
                     .bodyToMono(UserResponseDto.class)

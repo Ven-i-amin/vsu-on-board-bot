@@ -1,4 +1,4 @@
-package ru.vsu.core.service.impl;
+package ru.vsu.core.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;

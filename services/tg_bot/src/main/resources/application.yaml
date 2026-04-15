@@ -1,3 +1,6 @@
+server:
+  port: ${TG_BOT_PORT:8082}
+
 spring:
   data:
     redis:
@@ -7,12 +10,7 @@ spring:
 core:
   base-url: ${CORE_BASE_URL:http://localhost:8081}
 
-telegram:
-  bot:
-    mode: ${TELEGRAM_BOT_MODE:"${BOT_MODE}"}
-    token: ${TELEGRAM_BOT_TOKEN}
-#    webhook-url: ${TELEGRAM_WEBHOOK_URL:}
-#    webhook-path: ${TELEGRAM_WEBHOOK_PATH:/telegram/webhook}
-#    secret-token: ${TELEGRAM_WEBHOOK_SECRET:}
-#    auto-register: ${TELEGRAM_WEBHOOK_AUTO_REGISTER:true}
-#    polling-timeout-seconds: ${TELEGRAM_POLLING_TIMEOUT_SECONDS:30}
+gateway:
+  base-url: ${GATEWAY_BASE_URL:http://localhost:443}
+  internal:
+    token: ${TG_BOT_INTERNAL_TOKEN:}

@@ -13,9 +13,9 @@ public class QuestionClientImpl implements QuestionClient {
 
     @Override
     public void recordQuestionClicked(String questionName) {
-        coreClient.patch()
+        coreClient.post()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/question/{questionName}/fixate")
+                        .path("/bot/question/{questionName}/fixate")
                         .build(questionName)
                 )
                 .retrieve()

@@ -1,7 +1,7 @@
 package ru.vsu.tgbot.services.core;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -14,17 +14,21 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Slf4j
-@AllArgsConstructor
 public class UiMessageClientImpl implements UiMessageClient {
+    private static final Logger log = LoggerFactory.getLogger(UiMessageClientImpl.class);
     private final WebClient coreClient;
     private final CoreResponseMapper coreResponseMapper;
+
+    public UiMessageClientImpl(WebClient coreClient, CoreResponseMapper coreResponseMapper) {
+        this.coreClient = coreClient;
+        this.coreResponseMapper = coreResponseMapper;
+    }
 
     @Override
     public List<UiMessageDto> getUiMessages() {
         try {
             List<UiMessageDto> messages = coreClient.get()
-                    .uri("/uiMessages")
+                    .uri("/bot/uiMessages")
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<UiMessageResponseDto>>() {})
