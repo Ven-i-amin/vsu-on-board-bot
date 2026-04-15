@@ -1,9 +1,14 @@
 server:
-  port: 443
+  port: ${API_GATEWAY_PORT:8080}
 
 spring:
   application:
     name: API-GATEWAY-SERVICE
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWKS_URI:${CORE_URI:http://localhost:8081}/gateway/.well-known/jwks.json}
   cloud:
     gateway:
       routes:
@@ -12,7 +17,23 @@ spring:
           predicates:
             - Path=/api/**
 
-        - id: TG-BOT
-          uri: ${TG_BOT_URI:http://localhost:8082}
-          predicates:
-            - Path=/telegram/**
+telegram:
+  bot:
+    mode: ${TELEGRAM_BOT_MODE:webhook}
+    username: ${TELEGRAM_BOT_USERNAME:}
+    token: ${TELEGRAM_BOT_TOKEN:}
+    webhook-path: ${TELEGRAM_WEBHOOK_PATH:/telegram/webhook}
+    webhook-url: ${TELEGRAM_WEBHOOK_URL:}
+    webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:}
+    polling-timeout-seconds: ${TELEGRAM_POLLING_TIMEOUT_SECONDS:30}
+    polling-limit: ${TELEGRAM_POLLING_LIMIT:100}
+  tg-bot:
+    update-uri: ${TG_BOT_UPDATE_URI:http://localhost:8082/internal/telegram/updates}
+    internal-token: ${TG_BOT_INTERNAL_TOKEN:}
+  proxy:
+    enabled: ${TELEGRAM_PROXY_ENABLED:false}
+    type: ${TELEGRAM_PROXY_TYPE:HTTP}
+    host: ${TELEGRAM_PROXY_HOST:}
+    port: ${TELEGRAM_PROXY_PORT:0}
+    username: ${TELEGRAM_PROXY_USERNAME:}
+    password: ${TELEGRAM_PROXY_PASSWORD:}
