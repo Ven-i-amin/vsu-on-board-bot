@@ -27,11 +27,11 @@ public class GroupApiController {
             @PathVariable String groupName,
             @RequestParam(value = "depth", defaultValue = "0") Integer depth
     ) {
-        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(groupName, depth));
-        if (group == null) {
+        List<GroupResponseDto> groups = responseMapper.toResponse(groupService.findTreeByName(groupName, depth));
+        if (groups.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return group;
+        return groups.getFirst();
     }
 
     @GetMapping("/{groupName}/inner")
@@ -53,11 +53,11 @@ public class GroupApiController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        GroupResponseDto group = responseMapper.toResponse(groupService.findRootGroup(3));
-        if (group == null) {
+        List<GroupResponseDto> groups = responseMapper.toResponse(groupService.findRootGroup(3));
+        if (groups.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return group;
+        return groups.getFirst();
     }
 
     @PostMapping

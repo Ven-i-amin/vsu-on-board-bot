@@ -211,7 +211,7 @@ public class GroupServiceImpl implements GroupService {
                 Aggregation.project(
                                 "name",
                                 "title",
-                                "depth",
+                                "depthLevel",
                                 "path"
                         )
                         .and(
@@ -233,17 +233,17 @@ public class GroupServiceImpl implements GroupService {
             return List.of();
         }
 
-        Long rootDepth = root.depth();
+        Long rootDepth = root.depthLevel();
 
         Aggregation treeNodeAggregation = Aggregation.newAggregation(
                 Aggregation.match(
                         Criteria.where("path." + rootDepth).is(root.name())
-                                .and("depth").lte(rootDepth + depth)
+                                .and("depthLevel").lte(rootDepth + depth)
                 ),
                 Aggregation.project(
                                 "name",
                                 "title",
-                                "depth",
+                                "depthLevel",
                                 "path"
                         )
                         .and(

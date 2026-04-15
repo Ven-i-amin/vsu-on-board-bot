@@ -12,18 +12,18 @@ import ru.vsu.core.service.GroupService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/bot/group")
 @AllArgsConstructor
 public class GroupController {
     private final GroupService groupService;
     private final ResponseMapper responseMapper;
 
     @GetMapping("/{groupName}")
-    public GroupResponseDto getGroup(
+    public List<GroupResponseDto> getGroup(
             @PathVariable String groupName,
             @RequestParam(value = "depth", defaultValue = "0") Integer depth
     ) {
-        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(groupName, depth));
+        List<GroupResponseDto> group = responseMapper.toResponse(groupService.findTreeByName(groupName, depth));
         if (group == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -43,13 +43,13 @@ public class GroupController {
     }
 
     @GetMapping("/start")
-    public GroupResponseDto getStartGroup() {
+    public List<GroupResponseDto> getStartGroup() {
         GroupDto rootGroup = groupService.findRoot();
         if (rootGroup == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
 
-        GroupResponseDto group = responseMapper.toResponse(groupService.findRootGroup(3));
+        List<GroupResponseDto> group = responseMapper.toResponse(groupService.findRootGroup(3));
         if (group == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -65,9 +65,9 @@ public class GroupController {
 
     @PostMapping("/start")
     @ResponseStatus(HttpStatus.CREATED)
-    public GroupResponseDto createStartGroup() {
+    public List<GroupResponseDto> createStartGroup() {
         GroupDto rootGroup = groupService.createRootIfMissing();
-        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(rootGroup.name(), 3));
+        List<GroupResponseDto> group = responseMapper.toResponse(groupService.findTreeByName(rootGroup.name(), 3));
         if (group == null) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }

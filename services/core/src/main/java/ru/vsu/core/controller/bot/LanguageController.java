@@ -11,7 +11,7 @@ import ru.vsu.core.service.LanguageService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/languages")
+@RequestMapping("/bot/languages")
 @AllArgsConstructor
 public class LanguageController {
     private final LanguageService languageService;

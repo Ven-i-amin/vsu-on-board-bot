@@ -9,7 +9,7 @@ import ru.vsu.core.model.dto.UserDto;
 import ru.vsu.core.service.UserService;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/bot/user")
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;

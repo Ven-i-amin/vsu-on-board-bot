@@ -12,7 +12,7 @@ import ru.vsu.core.service.UiMessageService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/uiMessages")
+@RequestMapping("/bot/uiMessages")
 @AllArgsConstructor
 public class UiMessageController {
     private final UiMessageService uiMessageService;

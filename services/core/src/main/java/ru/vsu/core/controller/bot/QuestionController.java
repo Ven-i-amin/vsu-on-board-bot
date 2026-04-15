@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.core.service.QuestionService;
 
 @RestController
-@RequestMapping("/question")
+@RequestMapping("/bot/question")
 @AllArgsConstructor
 public class QuestionController {
     private final QuestionService questionService;
