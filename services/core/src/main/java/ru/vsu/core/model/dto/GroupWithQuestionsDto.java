@@ -11,5 +11,5 @@ public record GroupWithQuestionsDto(
     Map<String, String> title,
     String parentName,
     List<QuestionDto> questions,
-    Long depth
+    Long depthLevel
 ) {}

@@ -67,8 +67,13 @@ public interface QuestionMapper {
             return null;
         }
         return GroupResponse.builder()
-                .groupId(group.getGroupId())
+                .name(group.getName())
                 .title(group.getTitle())
+                .parentName(group.getPath() == null || group.getPath().isEmpty()
+                        ? null
+                        : group.getPath().get(group.getPath().size() - 1))
+                .childrenNames(List.of())
+                .questions(List.of())
                 .build();
     }
 

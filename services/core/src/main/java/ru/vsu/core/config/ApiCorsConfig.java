@@ -23,6 +23,6 @@ public class ApiCorsConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(apiJwtInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/admin/login", "/api/admin/register");
+                .excludePathPatterns("/api/auth/login", "/api/auth/register");
     }
 }

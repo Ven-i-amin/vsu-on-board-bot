@@ -4,6 +4,7 @@ type GroupResponseDto = {
   name: string
   title: LocalizedText
   parentName: string
+  innerGroups?: GroupResponseDto[]
   childrenNames?: string[]
   questions?: QuestionResponseDto[]
 }
@@ -109,11 +110,13 @@ function mapQuestion(dto: QuestionResponseDto): Question {
 }
 
 function mapGroup(dto: GroupResponseDto): GroupNode {
+  const nestedChildren = dto.innerGroups?.map((group) => group.name) ?? []
+
   return {
     name: dto.name,
     title: dto.title ?? {},
     parentName: dto.parentName ?? '',
-    childrenNames: dto.childrenNames ?? [],
+    childrenNames: dto.childrenNames ?? nestedChildren,
     questions: (dto.questions ?? []).map(mapQuestion),
     isLoaded: true,
   }

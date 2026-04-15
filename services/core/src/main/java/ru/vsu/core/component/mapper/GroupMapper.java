@@ -28,7 +28,7 @@ public interface GroupMapper {
 
     @Mapping(target = "groupId", ignore = true)
     @Mapping(target = "name", expression = "java(TransliterationUtil.transliterate(russianTitle))")
-    @Mapping(target = "depth", ignore = true)
+    @Mapping(target = "depthLevel", ignore = true)
     @Mapping(target = "path", ignore = true)
     Group toEntity(GroupRequest groupRequest, @Context String russianTitle);
 

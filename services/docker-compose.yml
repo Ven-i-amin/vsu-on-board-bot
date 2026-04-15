@@ -3,7 +3,24 @@ services:
     build:
       context: .
       dockerfile: ./api-gateway/Dockerfile
-#    restart: unless-stopped
+    restart: unless-stopped
+    depends_on:
+      core:
+        condition: service_healthy
+      tg-bot:
+        condition: service_started
+    ports:
+      - "443:443"
+    environment:
+      API_GATEWAY_PORT: 443
+      CORE_URI: http://core:8081
+      TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-webhook}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
+      TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL:-}
+      TELEGRAM_WEBHOOK_PATH: ${TELEGRAM_WEBHOOK_PATH:-/telegram/webhook}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      TG_BOT_UPDATE_URI: http://tg-bot:8082/internal/telegram/updates
+      TG_BOT_INTERNAL_TOKEN: ${TG_BOT_INTERNAL_TOKEN:-}
 
   mongo:
     image: mongo:7
@@ -64,11 +81,14 @@ services:
       redis:
         condition: service_healthy
     environment:
+      TG_BOT_PORT: 8082
       REDIS_HOST: redis
       REDIS_PORT: 6379
       CORE_BASE_URL: http://core:8081
-      TELEGRAM_BOT_MODE: long-polling
+      GATEWAY_BASE_URL: http://api-gateway:443
+      TELEGRAM_BOT_MODE: gateway
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
+      TG_BOT_INTERNAL_TOKEN: ${TG_BOT_INTERNAL_TOKEN:-}
 
 volumes:
   mongo_data:

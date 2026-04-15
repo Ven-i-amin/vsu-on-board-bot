@@ -46,7 +46,11 @@ public class BotConfig {
 
     @Bean(name = "usernamePath")
     public String usernamePath(BotProperties botProperties) {
-        return "/" + botProperties.getUsername();
+        String webhookPath = botProperties.getWebhookPath();
+        if (webhookPath == null || webhookPath.isBlank()) {
+            return "/" + botProperties.getUsername();
+        }
+        return webhookPath.startsWith("/") ? webhookPath : "/" + webhookPath;
     }
 
     private OkHttpClient buildProxyClient(ProxyProperties proxyProperties) {

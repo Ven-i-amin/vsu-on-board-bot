@@ -19,5 +19,7 @@ server:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
+    private-key: ${JWT_PRIVATE_KEY}
+    public-key: ${JWT_PUBLIC_KEY}
     expiration-hours: ${JWT_EXPIRATION_HOURS:24}
+    key-id: ${JWT_KEY_ID:core-admin-rsa-key}

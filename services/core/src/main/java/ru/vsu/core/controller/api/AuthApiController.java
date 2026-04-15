@@ -17,7 +17,7 @@ import ru.vsu.core.service.JwtService;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:5173")
 @AllArgsConstructor
 public class AuthApiController {
