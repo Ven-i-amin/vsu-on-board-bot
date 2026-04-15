@@ -1,7 +1,7 @@
 package ru.vsu.tgbot.services.business;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,14 +20,27 @@ import ru.vsu.tgbot.util.MessageState;
 import ru.vsu.tgbot.util.MessageUtil;
 
 @Service
-@Slf4j
-@AllArgsConstructor
 public class QueryServiceImpl implements QueryService {
-    private SessionService sessionService;
-    private UserClient userClient;
-    private GroupCacheService groupCacheService;
-    private BotHandlerRegistry botHandlerRegistry;
-    private BotMessageSender botMessageSender;
+    private static final Logger log = LoggerFactory.getLogger(QueryServiceImpl.class);
+    private final SessionService sessionService;
+    private final UserClient userClient;
+    private final GroupCacheService groupCacheService;
+    private final BotHandlerRegistry botHandlerRegistry;
+    private final BotMessageSender botMessageSender;
+
+    public QueryServiceImpl(
+            SessionService sessionService,
+            UserClient userClient,
+            GroupCacheService groupCacheService,
+            BotHandlerRegistry botHandlerRegistry,
+            BotMessageSender botMessageSender
+    ) {
+        this.sessionService = sessionService;
+        this.userClient = userClient;
+        this.groupCacheService = groupCacheService;
+        this.botHandlerRegistry = botHandlerRegistry;
+        this.botMessageSender = botMessageSender;
+    }
 
     @Override
     public void processQuery(Update update) {

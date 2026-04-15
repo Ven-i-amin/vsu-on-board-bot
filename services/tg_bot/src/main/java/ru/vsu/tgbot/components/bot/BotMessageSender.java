@@ -1,20 +1,21 @@
 package ru.vsu.tgbot.components.bot;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class BotMessageSender {
     private static final String HTML_PARSE_MODE = "HTML";
+    private static final Logger log = LoggerFactory.getLogger(BotMessageSender.class);
 
-    private final TelegramClient telegramClient;
+    private final WebClient gatewayTelegramClient;
 
     public Message send(SendMessage message) {
         if (message == null) {
@@ -28,7 +29,12 @@ public class BotMessageSender {
         Message sendedMessage = null;
 
         try {
-            sendedMessage = telegramClient.execute(message);
+            sendedMessage = gatewayTelegramClient.post()
+                    .uri("/internal/telegram/messages/send")
+                    .bodyValue(message)
+                    .retrieve()
+                    .bodyToMono(Message.class)
+                    .block();
         } catch (Exception e) {
             log.error("Failed to send Telegram message", e);
         }
@@ -42,7 +48,12 @@ public class BotMessageSender {
         }
 
         try {
-            telegramClient.execute(message);
+            gatewayTelegramClient.post()
+                    .uri("/internal/telegram/messages/delete")
+                    .bodyValue(message)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
         } catch (Exception e) {
             log.error("Failed to delete Telegram message", e);
         }

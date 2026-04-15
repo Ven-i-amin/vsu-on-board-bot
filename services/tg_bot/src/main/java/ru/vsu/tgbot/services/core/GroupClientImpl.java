@@ -1,7 +1,7 @@
 package ru.vsu.tgbot.services.core;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,11 +13,15 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Slf4j
-@AllArgsConstructor
 public class GroupClientImpl implements GroupClient {
+    private static final Logger log = LoggerFactory.getLogger(GroupClientImpl.class);
     private final WebClient coreClient;
     private final CoreResponseMapper coreResponseMapper;
+
+    public GroupClientImpl(WebClient coreClient, CoreResponseMapper coreResponseMapper) {
+        this.coreClient = coreClient;
+        this.coreResponseMapper = coreResponseMapper;
+    }
 
     @Override
     public GroupDto getQuestionGroup(String groupName, String language) {
@@ -32,21 +36,20 @@ public class GroupClientImpl implements GroupClient {
     @Override
     public GroupDto getGroupByNameWithDepth(String groupName, Integer depth, String language) {
         try {
-            GroupDto group = coreClient.get()
+            List<GroupDto> groups = coreClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/group/{groupName}")
+                            .path("/bot/group/{groupName}")
                             .queryParam("depth", depth)
                             .build(groupName)
                     )
                     .retrieve()
-                    .bodyToMono(GroupResponseDto.class)
-                    .map(coreResponseMapper::toGroupDto)
+                    .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
+                    .map(coreResponseMapper::toGroupDtoList)
                     .block();
+            GroupDto group = extractRootGroup(groups, groupName);
             if (group == null) {
                 return placeholderGroup(groupName);
             }
-
-            group.setInnerGroups(getInnerGroups(group.getName(), language));
             return group;
         } catch (RuntimeException ex) {
             log.warn("Failed to fetch group by name {} from core", groupName, ex);
@@ -59,7 +62,7 @@ public class GroupClientImpl implements GroupClient {
         try {
             List<GroupDto> groups = coreClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/group/{groupName}/inner")
+                            .path("/bot/group/{groupName}/inner")
                             .build(groupName)
                     )
                     .retrieve()
@@ -77,7 +80,7 @@ public class GroupClientImpl implements GroupClient {
     public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupNames, String language) {
         try {
             List<GroupDto> groups = coreClient.post()
-                    .uri("/group/list")
+                    .uri("/bot/group/list")
                     .bodyValue(groupNames)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
@@ -93,22 +96,38 @@ public class GroupClientImpl implements GroupClient {
     @Override
     public GroupDto getStartGroup() {
         try {
-            GroupDto group = coreClient.get()
-                    .uri("/group/start")
+            List<GroupDto> groups = coreClient.get()
+                    .uri("/bot/group/start")
                     .retrieve()
-                    .bodyToMono(GroupResponseDto.class)
-                    .map(coreResponseMapper::toGroupDto)
+                    .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
+                    .map(coreResponseMapper::toGroupDtoList)
                     .block();
+            GroupDto group = extractRootGroup(groups, "start");
             if (group == null) {
                 return placeholderGroup("start");
             }
-
-            group.setInnerGroups(getInnerGroups(group.getName(), "ru"));
             return group;
         } catch (RuntimeException ex) {
             log.warn("Failed to fetch start group from core", ex);
             return placeholderGroup("start");
         }
+    }
+
+    private GroupDto extractRootGroup(List<GroupDto> groups, String defaultName) {
+        if (groups == null || groups.isEmpty()) {
+            return null;
+        }
+
+        GroupDto rootGroup = groups.stream()
+                .filter(group -> group.getParentName() == null)
+                .findFirst()
+                .orElse(groups.getFirst());
+
+        if (rootGroup.getName() == null || rootGroup.getName().isBlank()) {
+            rootGroup.setName(defaultName);
+        }
+
+        return rootGroup;
     }
 
     private GroupDto placeholderGroup(String groupName) {

@@ -1,10 +1,5 @@
 package ru.vsu.tgbot.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
 public enum UiMessageName {
     BACK("back"),
     START("start"),
@@ -17,4 +12,12 @@ public enum UiMessageName {
     OTHER_LANGUAGE_MENU("other-language-menu");
 
     private final String value;
+
+    UiMessageName(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }
