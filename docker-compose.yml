@@ -10,11 +10,12 @@ services:
       tg-bot:
         condition: service_started
     ports:
-      - "443:443"
+      - "80:443"
     environment:
+      JAVA_TOOL_OPTIONS: ${API_GATEWAY_JAVA_TOOL_OPTIONS:-}
       API_GATEWAY_PORT: 443
       CORE_URI: http://core:8081
-      TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-webhook}
+      TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-long-polling}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set TELEGRAM_BOT_TOKEN}
       TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL:-}
       TELEGRAM_WEBHOOK_PATH: ${TELEGRAM_WEBHOOK_PATH:-/telegram/webhook}
@@ -65,7 +66,6 @@ services:
       MONGO_WAY: mongo
       MONGO_PORT: 27017
       MONGO_NAME: foreign_bot
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
 
   tg-bot:

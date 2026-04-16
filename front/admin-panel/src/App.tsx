@@ -14,6 +14,7 @@ import {
   type LocalizedText,
 } from './entities/models'
 import {
+  clearAuthToken,
   createGroup,
   createQuestion,
   deleteGroup,
@@ -22,9 +23,14 @@ import {
   fetchGroup,
   fetchInnerGroups,
   fetchStartGroup,
+  getAuthToken,
+  isUnauthorizedError,
+  loginAdmin,
   mapGroupDto,
   mapQuestion,
   mapUiMessage,
+  registerAdmin,
+  setAuthToken,
   updateGroupTitle,
   updateQuestion,
   updateUiMessage as updateUiMessageRequest,
@@ -50,7 +56,7 @@ type AppRoute =
   | { type: 'registration' }
   | { type: 'technical-questions' }
   | { type: 'groups'; path: string[] }
-  | { type: 'question'; questionId: string }
+  | { type: 'question'; path: string[]; questionName: string }
 type ModalState =
   | { type: 'edit-group'; groupName: string }
   | { type: 'create-group'; groupName: string }
@@ -186,10 +192,6 @@ function parseRoute(pathname: string): AppRoute {
     return { type: 'groups', path: segments.slice(1) }
   }
 
-  if (segments[0] === 'questions' && segments[1]) {
-    return { type: 'question', questionId: segments[1] }
-  }
-
   return { type: 'dashboard' }
 }
 
@@ -210,8 +212,20 @@ function buildRoutePath(route: AppRoute) {
         ? `/groups/${route.path.map(encodeURIComponent).join('/')}`
         : '/groups'
     case 'question':
-      return `/questions/${encodeURIComponent(route.questionId)}`
+      return `/groups/${[...route.path, route.questionName].map(encodeURIComponent).join('/')}`
   }
+}
+
+function normalizeRoute(route: AppRoute, isAuthenticated: boolean): AppRoute {
+  if (!isAuthenticated) {
+    return { type: 'login' }
+  }
+
+  if (route.type === 'login') {
+    return { type: 'dashboard' }
+  }
+
+  return route
 }
 
 function localizeTitle(value: LocalizedText | undefined, fallback: string, languageCode = 'ru') {
@@ -244,7 +258,36 @@ function toGroupModel(node: GroupNode | null, groupsByName: CachedGroupMap): Gro
   })
 }
 
-function findQuestion(groupsByName: CachedGroupMap, questionId: string): QuestionLookup {
+function findQuestion(
+  groupsByName: CachedGroupMap,
+  questionName: string,
+  groupName?: string | null,
+): QuestionLookup {
+  if (groupName) {
+    const group = groupsByName[groupName]
+    const question = group?.questions.find((item) => item.name === questionName)
+    if (question) {
+      return {
+        question: new Question(question),
+        groupName: group.name,
+      }
+    }
+  }
+
+  for (const group of Object.values(groupsByName)) {
+    const question = group.questions.find((item) => item.name === questionName)
+    if (question) {
+      return {
+        question: new Question(question),
+        groupName: group.name,
+      }
+    }
+  }
+
+  return null
+}
+
+function findQuestionById(groupsByName: CachedGroupMap, questionId: string): QuestionLookup {
   for (const group of Object.values(groupsByName)) {
     const question = group.questions.find((item) => item.questionId === questionId)
     if (question) {
@@ -256,6 +299,30 @@ function findQuestion(groupsByName: CachedGroupMap, questionId: string): Questio
   }
 
   return null
+}
+
+async function resolveQuestionForMutation(
+  questionId: string,
+  route: AppRoute,
+  rootGroupName: string | null,
+  ensureGroupLoaded: (groupName: string, options?: { force?: boolean }) => Promise<GroupNode>,
+  getGroupsByName: () => CachedGroupMap,
+): Promise<QuestionLookup> {
+  if (questionId.trim()) {
+    return findQuestionById(getGroupsByName(), questionId)
+  }
+
+  if (route.type !== 'question') {
+    return null
+  }
+
+  const groupName = route.path.length > 0 ? route.path[route.path.length - 1] : rootGroupName
+  if (!groupName) {
+    return null
+  }
+
+  await ensureGroupLoaded(groupName, { force: true })
+  return findQuestion(getGroupsByName(), route.questionName, groupName)
 }
 
 function renameGroupInCache(
@@ -381,16 +448,19 @@ function updateQuestionInCache(
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAuthToken()))
   const [theme, setTheme] = useState<Theme>(() => getInitialTheme())
   const [groupsByName, setGroupsByName] = useState<CachedGroupMap>({})
   const [rootGroupName, setRootGroupName] = useState<string | null>(null)
   const [uiMessages, setUiMessages] = useState<UiMessage[]>([])
-  const [route, setRoute] = useState<AppRoute>(() => parseRoute(window.location.pathname))
+  const [route, setRoute] = useState<AppRoute>(() =>
+    normalizeRoute(parseRoute(window.location.pathname), Boolean(getAuthToken())),
+  )
   const [modal, setModal] = useState<ModalState>(null)
   const [languageCode, setLanguageCode] = useState<LanguageCode>('ru')
   const [titleValues, setTitleValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
   const [textValues, setTextValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(() => Boolean(getAuthToken()))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const lastGroupsPathRef = useRef<string[]>([])
@@ -405,8 +475,41 @@ function App() {
     rootGroupNameRef.current = rootGroupName
   }, [rootGroupName])
 
+  const resetAdminState = () => {
+    setGroupsByName({})
+    setRootGroupName(null)
+    setUiMessages([])
+    setModal(null)
+    setLanguageCode('ru')
+    setTitleValues(createEmptyLocalizedDraft())
+    setTextValues(createEmptyLocalizedDraft())
+    setIsLoading(false)
+  }
+
+  const logout = () => {
+    clearAuthToken()
+    setIsAuthenticated(false)
+    setErrorMessage('')
+    setIsSubmitting(false)
+    resetAdminState()
+    const loginRoute = { type: 'login' } satisfies AppRoute
+    window.history.replaceState(null, '', buildRoutePath(loginRoute))
+    setRoute(loginRoute)
+  }
+
+  const handleApiError = (error: unknown) => {
+    if (isUnauthorizedError(error)) {
+      logout()
+      return true
+    }
+
+    setErrorMessage(getErrorMessage(error))
+    return false
+  }
+
   const navigate = (nextRoute: AppRoute, options?: { replace?: boolean }) => {
-    const nextPath = buildRoutePath(nextRoute)
+    const normalizedRoute = normalizeRoute(nextRoute, isAuthenticated)
+    const nextPath = buildRoutePath(normalizedRoute)
     const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
 
     if (currentPath !== nextPath) {
@@ -417,7 +520,7 @@ function App() {
       }
     }
 
-    setRoute(nextRoute)
+    setRoute(normalizedRoute)
   }
 
   const mergeGroups = (groups: GroupNode[]) => {
@@ -500,24 +603,40 @@ function App() {
   }, [theme])
 
   useEffect(() => {
-    const handlePopState = () => setRoute(parseRoute(window.location.pathname))
+    const handlePopState = () =>
+      setRoute(normalizeRoute(parseRoute(window.location.pathname), Boolean(getAuthToken())))
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
+    const normalizedRoute = normalizeRoute(route, isAuthenticated)
+    if (buildRoutePath(normalizedRoute) !== buildRoutePath(route)) {
+      navigate(normalizedRoute, { replace: true })
+    }
+  }, [isAuthenticated, route])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      resetAdminState()
+      return
+    }
+
     void loadData()
-  }, [])
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (route.type === 'groups') {
       lastGroupsPathRef.current = route.path
     }
+    if (route.type === 'question') {
+      lastGroupsPathRef.current = route.path
+    }
   }, [route])
 
   useEffect(() => {
-    if (route.type !== 'groups' || !rootGroupName) {
+    if ((route.type !== 'groups' && route.type !== 'question') || !rootGroupName) {
       return
     }
 
@@ -525,20 +644,43 @@ function App() {
 
     void (async () => {
       try {
-        const normalizedPath = await ensurePathLoaded(route.path)
+        const targetPath = route.path
+        const normalizedPath = await ensurePathLoaded(targetPath)
         if (isCancelled) {
           return
         }
 
-        if (
-          normalizedPath.length !== route.path.length
-          || normalizedPath.some((groupName, index) => groupName !== route.path[index])
-        ) {
-          navigate({ type: 'groups', path: normalizedPath }, { replace: true })
+        if (route.type === 'groups' && normalizedPath.length === targetPath.length - 1) {
+          const questionName = targetPath[targetPath.length - 1]
+          const parentGroupName =
+            normalizedPath.length > 0 ? normalizedPath[normalizedPath.length - 1] : rootGroupNameRef.current
+
+          if (parentGroupName) {
+            await ensureGroupLoaded(parentGroupName)
+            const questionLookup = findQuestion(groupsByNameRef.current, questionName, parentGroupName)
+
+            if (questionLookup) {
+              navigate({ type: 'question', path: normalizedPath, questionName }, { replace: true })
+              return
+            }
+          }
+        }
+
+        const hasPathMismatch =
+          normalizedPath.length !== targetPath.length
+          || normalizedPath.some((groupName, index) => groupName !== targetPath[index])
+
+        if (hasPathMismatch) {
+          navigate(
+            route.type === 'groups'
+              ? { type: 'groups', path: normalizedPath }
+              : { type: 'question', path: normalizedPath, questionName: route.questionName },
+            { replace: true },
+          )
         }
       } catch (error) {
         if (!isCancelled) {
-          setErrorMessage(getErrorMessage(error))
+          handleApiError(error)
         }
       }
     })()
@@ -569,11 +711,12 @@ function App() {
   }, [groupsByName, modal])
   const currentQuestionLookup = useMemo(() => {
     if (route.type === 'question') {
-      return findQuestion(groupsByName, route.questionId)
+      const routeGroupName = route.path.length > 0 ? route.path[route.path.length - 1] : rootGroupName
+      return findQuestion(groupsByName, route.questionName, routeGroupName)
     }
 
     if (modal && 'questionId' in modal) {
-      return findQuestion(groupsByName, modal.questionId)
+      return findQuestionById(groupsByName, modal.questionId)
     }
 
     return null
@@ -639,6 +782,11 @@ function App() {
   async function loadData(options?: { silent?: boolean }) {
     const silent = options?.silent ?? false
 
+    if (!isAuthenticated) {
+      setIsLoading(false)
+      return
+    }
+
     setErrorMessage('')
     if (!silent) {
       setIsLoading(true)
@@ -648,7 +796,7 @@ function App() {
       const [data] = await Promise.all([fetchAdminData(), ensureStartGroupLoaded()])
       setUiMessages(data.uiMessages)
     } catch (error) {
-      setErrorMessage(getErrorMessage(error))
+      handleApiError(error)
     } finally {
       if (!silent) {
         setIsLoading(false)
@@ -803,7 +951,7 @@ function App() {
           break
         case 'delete-question':
           if (!currentQuestion) return
-          await deleteQuestion(currentQuestion.name)
+          await deleteQuestion(currentQuestion.questionId)
           setGroupsByName((current) => removeQuestionFromCache(current, modal.questionId))
           setModal(null)
           break
@@ -823,7 +971,37 @@ function App() {
           return
       }
     } catch (error) {
+      handleApiError(error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleLogin = async (login: string, password: string) => {
+    setErrorMessage('')
+    setIsSubmitting(true)
+    clearAuthToken()
+
+    try {
+      const response = await loginAdmin(login, password)
+      setAuthToken(response.token)
+      setIsAuthenticated(true)
+      navigate({ type: 'dashboard' }, { replace: true })
+    } catch (error) {
       setErrorMessage(getErrorMessage(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleRegisterAdmin = async (login: string, password: string) => {
+    setErrorMessage('')
+    setIsSubmitting(true)
+
+    try {
+      await registerAdmin(login, password)
+    } catch (error) {
+      handleApiError(error)
     } finally {
       setIsSubmitting(false)
     }
@@ -834,8 +1012,15 @@ function App() {
     title: LocalizedText,
     text: LocalizedText,
   ) => {
-    const questionLookup = findQuestion(groupsByNameRef.current, questionId)
+    const questionLookup = await resolveQuestionForMutation(
+      questionId,
+      route,
+      rootGroupNameRef.current,
+      ensureGroupLoaded,
+      () => groupsByNameRef.current,
+    )
     if (!questionLookup) {
+      setErrorMessage('Question id is missing')
       return
     }
 
@@ -843,17 +1028,27 @@ function App() {
     setIsSubmitting(true)
 
     try {
-      const updatedQuestion = mapQuestion(await updateQuestion(questionLookup.question.name, title, text))
-      setGroupsByName((current) => updateQuestionInCache(current, questionId, updatedQuestion))
+      const effectiveQuestionId = questionLookup.question.questionId
+      const updatedQuestion = mapQuestion(await updateQuestion(effectiveQuestionId, title, text))
+      setGroupsByName((current) => updateQuestionInCache(current, effectiveQuestionId, updatedQuestion))
+      if (route.type === 'question' && currentQuestion?.questionId === effectiveQuestionId && route.questionName !== updatedQuestion.name) {
+        navigate({ type: 'question', path: route.path, questionName: updatedQuestion.name }, { replace: true })
+      }
     } catch (error) {
-      setErrorMessage(getErrorMessage(error))
+      handleApiError(error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const handleDeleteQuestionFromPage = async (questionId: string) => {
-    const questionLookup = findQuestion(groupsByNameRef.current, questionId)
+    const questionLookup = await resolveQuestionForMutation(
+      questionId,
+      route,
+      rootGroupNameRef.current,
+      ensureGroupLoaded,
+      () => groupsByNameRef.current,
+    )
     if (!questionLookup) {
       navigate({ type: 'groups', path: lastGroupsPathRef.current }, { replace: true })
       return
@@ -863,11 +1058,12 @@ function App() {
     setIsSubmitting(true)
 
     try {
-      await deleteQuestion(questionLookup.question.name)
-      setGroupsByName((current) => removeQuestionFromCache(current, questionId))
+      const effectiveQuestionId = questionLookup.question.questionId
+      await deleteQuestion(effectiveQuestionId)
+      setGroupsByName((current) => removeQuestionFromCache(current, effectiveQuestionId))
       navigate({ type: 'groups', path: lastGroupsPathRef.current }, { replace: true })
     } catch (error) {
-      setErrorMessage(getErrorMessage(error))
+      handleApiError(error)
     } finally {
       setIsSubmitting(false)
     }
@@ -929,7 +1125,7 @@ function App() {
               className="topbar__profile"
               type="button"
               aria-label="Выход из профиля"
-              onClick={() => navigate({ type: 'login' })}
+              onClick={logout}
             >
               <img src={userIcon} alt="" aria-hidden="true" />
               <span>Выход из профиля</span>
@@ -943,7 +1139,13 @@ function App() {
       )}
       {isLoading && route.type !== 'login' && <div className="app-status">Loading data...</div>}
 
-      {route.type === 'login' && <LoginPage />}
+      {route.type === 'login' && (
+        <LoginPage
+          errorMessage={errorMessage}
+          isSubmitting={isSubmitting}
+          onSubmit={handleLogin}
+        />
+      )}
 
       {!isLoading && route.type === 'dashboard' && (
         <DashboardPage
@@ -954,7 +1156,13 @@ function App() {
 
       {!isLoading && route.type === 'statistics' && <StatisticsPage langCode="ru" />}
 
-      {!isLoading && route.type === 'registration' && <RegistrationPage />}
+      {!isLoading && route.type === 'registration' && (
+        <RegistrationPage
+          errorMessage={errorMessage}
+          isSubmitting={isSubmitting}
+          onSubmit={handleRegisterAdmin}
+        />
+      )}
 
       {!isLoading && route.type === 'technical-questions' && (
         <TechnicalQuestionsPage
@@ -974,7 +1182,7 @@ function App() {
           onGoHome={() => navigate({ type: 'dashboard' })}
           onNavigateToPath={(path) => navigate({ type: 'groups', path })}
           onOpenGroup={(groupName) => navigate({ type: 'groups', path: [...route.path, groupName] })}
-          onOpenQuestion={(questionId) => navigate({ type: 'question', questionId })}
+          onOpenQuestion={(questionName, groupPath) => navigate({ type: 'question', path: groupPath, questionName })}
           onGoBack={() =>
             route.path.length === 0
               ? navigate({ type: 'dashboard' })

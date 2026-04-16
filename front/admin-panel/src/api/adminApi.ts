@@ -52,7 +52,13 @@ type TopQuestionResponse = {
   using: number
 }
 
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081'}/api`
+type AuthTokenResponse = {
+  token: string
+}
+
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '')
+const API_BASE = configuredApiBaseUrl ? `${configuredApiBaseUrl}/api` : '/api'
+export const AUTH_TOKEN_STORAGE_KEY = 'admin-panel-auth-token'
 
 const DEFAULT_UI_MESSAGE_DESCRIPTIONS: Record<string, LocalizedText> = {
   'unknown-command': {
@@ -67,9 +73,15 @@ const DEFAULT_UI_MESSAGE_DESCRIPTIONS: Record<string, LocalizedText> = {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers)
+  const token = getAuthToken()
+  const isAuthRequest = path.startsWith('/auth/')
 
   if (init?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
+  }
+
+  if (!isAuthRequest && token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`)
   }
 
   const response = await fetch(`${API_BASE}${path}`, {
@@ -97,6 +109,35 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return JSON.parse(text) as T
+}
+
+export function getAuthToken() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ?? ''
+}
+
+export function setAuthToken(token: string) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token)
+}
+
+export function clearAuthToken() {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+}
+
+export function isUnauthorizedError(error: unknown) {
+  return error instanceof Error
+    && (error.message.includes('401') || error.message.includes('JWT token is required') || error.message.includes('Invalid JWT token'))
 }
 
 function mapQuestion(dto: QuestionResponseDto): Question {
@@ -147,6 +188,20 @@ export async function fetchAdminData() {
   }
 }
 
+export function loginAdmin(email: string, password: string) {
+  return request<AuthTokenResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export function registerAdmin(email: string, password: string) {
+  return request<AuthTokenResponse>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
 export function fetchStartGroup() {
   return request<GroupResponseDto>('/group/start').then(mapGroup)
 }
@@ -188,15 +243,15 @@ export function createQuestion(groupName: string, title: LocalizedText, text: Lo
   })
 }
 
-export function updateQuestion(questionName: string, title: LocalizedText, text: LocalizedText) {
-  return request<QuestionResponseDto>(`/question/${encodeURIComponent(questionName)}`, {
+export function updateQuestion(questionId: string, title: LocalizedText, text: LocalizedText) {
+  return request<QuestionResponseDto>(`/question/${encodeURIComponent(questionId)}`, {
     method: 'PATCH',
     body: JSON.stringify({ title, text }),
   })
 }
 
-export function deleteQuestion(questionName: string) {
-  return request<void>(`/question/${encodeURIComponent(questionName)}`, {
+export function deleteQuestion(questionId: string) {
+  return request<void>(`/question/${encodeURIComponent(questionId)}`, {
     method: 'DELETE',
   })
 }

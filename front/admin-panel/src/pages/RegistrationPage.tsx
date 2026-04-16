@@ -1,7 +1,17 @@
 import { useMemo, useState } from 'react'
 import '../App.css'
 
-function RegistrationPage() {
+type RegistrationPageProps = {
+  errorMessage?: string
+  isSubmitting?: boolean
+  onSubmit: (login: string, password: string) => Promise<void> | void
+}
+
+function RegistrationPage({
+  errorMessage = '',
+  isSubmitting = false,
+  onSubmit,
+}: RegistrationPageProps) {
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -10,6 +20,23 @@ function RegistrationPage() {
     () => confirmPassword.trim().length > 0 && password !== confirmPassword,
     [confirmPassword, password],
   )
+
+  const handleSubmit = async () => {
+    if (
+      !login.trim()
+      || !password.trim()
+      || !confirmPassword.trim()
+      || isPasswordMismatch
+      || isSubmitting
+    ) {
+      return
+    }
+
+    await onSubmit(login.trim(), password)
+    setLogin('')
+    setPassword('')
+    setConfirmPassword('')
+  }
 
   return (
     <main className="auth-page">
@@ -49,17 +76,17 @@ function RegistrationPage() {
             />
           </label>
 
-          {isPasswordMismatch && (
-            <div className="auth-card__error">Пароли не совпадают</div>
-          )}
+          {isPasswordMismatch && <div className="auth-card__error">Пароли не совпадают</div>}
+          {errorMessage && <div className="auth-card__error">{errorMessage}</div>}
 
           <div className="auth-card__actions">
             <button
               className="modal-form__button"
               type="button"
-              disabled={!login.trim() || !password.trim() || !confirmPassword.trim() || isPasswordMismatch}
+              disabled={!login.trim() || !password.trim() || !confirmPassword.trim() || isPasswordMismatch || isSubmitting}
+              onClick={() => void handleSubmit()}
             >
-              Создать администратора
+              {isSubmitting ? 'Создание...' : 'Создать администратора'}
             </button>
           </div>
         </div>

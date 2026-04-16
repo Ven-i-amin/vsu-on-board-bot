@@ -22,7 +22,7 @@ type AdminPageProps = {
   onGoHome: () => void
   onNavigateToPath: (path: string[]) => void
   onOpenGroup: (groupName: string) => void
-  onOpenQuestion: (questionId: string) => void
+  onOpenQuestion: (questionName: string, groupPath: string[]) => void
   onGoBack: () => void
   onEditGroup: (groupName: string) => void
   onCreateGroup: (groupName: string) => void
@@ -233,11 +233,11 @@ function AdminPage({
                 className="browser__item"
                 role="button"
                 tabIndex={0}
-                onClick={() => onOpenQuestion(question.questionId)}
+                onClick={() => onOpenQuestion(question.name, currentFolderPath)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
-                    onOpenQuestion(question.questionId)
+                    onOpenQuestion(question.name, currentFolderPath)
                   }
                 }}
               >
@@ -255,7 +255,7 @@ function AdminPage({
                     aria-label="Редактировать вопрос"
                     onClick={(event) => {
                       event.stopPropagation()
-                      onOpenQuestion(question.questionId)
+                      onOpenQuestion(question.name, currentFolderPath)
                     }}
                   >
                     <img src={pencilIcon} alt="" aria-hidden="true" />
