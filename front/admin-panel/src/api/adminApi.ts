@@ -19,6 +19,7 @@ type QuestionResponseDto = {
 
 type UiMessageResponseDto = {
   name: string
+  description: LocalizedText
   text: LocalizedText
 }
 
@@ -56,6 +57,16 @@ type AuthTokenResponse = {
   token: string
 }
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '')
 const API_BASE = configuredApiBaseUrl ? `${configuredApiBaseUrl}/api` : '/api'
 export const AUTH_TOKEN_STORAGE_KEY = 'admin-panel-auth-token'
@@ -69,6 +80,78 @@ const DEFAULT_UI_MESSAGE_DESCRIPTIONS: Record<string, LocalizedText> = {
     ru: 'Показывается пользователю, если во время обработки произошла внутренняя ошибка.',
     en: 'Shown to the user if an internal error occurs during processing.',
   },
+}
+
+function decodeMojibake(value: string): string {
+  if (!/[ÐÑÃ]/.test(value)) {
+    return value
+  }
+
+  try {
+    return new TextDecoder('utf-8').decode(Uint8Array.from(value, (char) => char.charCodeAt(0) & 0xff))
+  } catch {
+    return value
+  }
+}
+
+export function normalizeDisplayText(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return ''
+  }
+
+  const decoded = decodeMojibake(trimmed).replace(/^Error:\s*/i, '').trim()
+
+  if (decoded.startsWith('<!DOCTYPE html') || decoded.startsWith('<html')) {
+    return ''
+  }
+
+  try {
+    const parsed = JSON.parse(decoded) as { message?: string; error?: string }
+    const nestedMessage: string =
+      typeof parsed.message === 'string' ? normalizeDisplayText(parsed.message) : ''
+    if (nestedMessage) {
+      return nestedMessage
+    }
+
+    const nestedError: string =
+      typeof parsed.error === 'string' ? normalizeDisplayText(parsed.error) : ''
+    if (nestedError) {
+      return nestedError
+    }
+  } catch {
+    // keep plain text as-is
+  }
+
+  return decoded
+}
+
+function getDefaultErrorMessage(status: number): string {
+  switch (status) {
+    case 400:
+      return 'Некорректный запрос'
+    case 401:
+      return 'Сессия истекла. Войдите заново'
+    case 403:
+      return 'Доступ запрещен'
+    case 404:
+      return 'Запрошенные данные не найдены'
+    case 409:
+      return 'Такой объект уже существует'
+    case 500:
+      return 'Внутренняя ошибка сервера'
+    default:
+      return 'Не удалось выполнить запрос'
+  }
+}
+
+function buildRequestErrorMessage(status: number, responseText: string): string {
+  const normalizedText = normalizeDisplayText(responseText)
+  if (normalizedText) {
+    return normalizedText
+  }
+
+  return `${getDefaultErrorMessage(status)} (${status})`
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -91,7 +174,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const text = await response.text()
-    throw new Error(text || `Request failed with status ${response.status}`)
+    throw new ApiError(response.status, buildRequestErrorMessage(response.status, text))
   }
 
   if (response.status === 204) {
@@ -136,8 +219,14 @@ export function clearAuthToken() {
 }
 
 export function isUnauthorizedError(error: unknown) {
-  return error instanceof Error
-    && (error.message.includes('401') || error.message.includes('JWT token is required') || error.message.includes('Invalid JWT token'))
+  return (error instanceof ApiError && error.status === 401)
+    || (error instanceof Error
+      && (
+        error.message.includes('401')
+        || error.message.includes('JWT token is required')
+        || error.message.includes('Invalid JWT token')
+        || error.message.includes('Сессия истекла')
+      ))
 }
 
 function mapQuestion(dto: QuestionResponseDto): Question {
@@ -166,7 +255,7 @@ function mapGroup(dto: GroupResponseDto): GroupNode {
 function mapUiMessage(dto: UiMessageResponseDto): UiMessage {
   return new UiMessage({
     name: dto.name,
-    description: DEFAULT_UI_MESSAGE_DESCRIPTIONS[dto.name] ?? {},
+    description: dto.description ?? DEFAULT_UI_MESSAGE_DESCRIPTIONS[dto.name] ?? {},
     text: dto.text ?? {},
   })
 }

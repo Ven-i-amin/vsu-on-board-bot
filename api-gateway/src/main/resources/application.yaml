@@ -1,0 +1,23 @@
+server:
+  port: ${API_GATEWAY_PORT:443}
+
+spring:
+  application:
+    name: API-GATEWAY-SERVICE
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: CORE-API-SERVICE
+              uri: ${CORE_URI:http://localhost:8081}
+              predicates:
+                - Path=/api/**
+            - id: CORE-ADMIN-SERVICE
+              uri: ${CORE_URI:http://localhost:8081}
+              predicates:
+                - Path=/admin,/admin/**
+            - id: TG-BOT-WEBHOOK-SERVICE
+              uri: ${TG_BOT_URI:http://localhost:8082}
+              predicates:
+                - Path=/telegram/**

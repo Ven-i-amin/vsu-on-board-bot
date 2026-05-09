@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import './StatsPanel.css'
-import { fetchTopLanguages, fetchTopQuestions } from '../api/adminApi'
+import { fetchTopLanguages, fetchTopQuestions, normalizeDisplayText } from '../api/adminApi'
 import type { LocalizedText } from '../entities/models'
 
 type StatItem = {
@@ -77,7 +77,11 @@ function StatsPanel({ langCode = 'ru' }: { langCode?: string }) {
           return
         }
 
-        setErrorMessage(error instanceof Error ? error.message : 'Не удалось загрузить статистику')
+        setErrorMessage(
+          error instanceof Error
+            ? normalizeDisplayText(error.message) || 'Не удалось загрузить статистику'
+            : 'Не удалось загрузить статистику',
+        )
       } finally {
         if (!cancelled) {
           setIsLoading(false)

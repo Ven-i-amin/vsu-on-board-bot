@@ -1,0 +1,422 @@
+[
+  {
+    "name": "vneuchebnaya-deyatelnost",
+    "title": {
+      "ru": "ВНЕУЧЕБНАЯ ДЕЯТЕЛЬНОСТЬ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "gaydy",
+    "title": {
+      "ru": "ГАЙДЫ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "gayd-dlya-tekh-kto-postupil-na-predvuzovskiy-etap-obucheniya",
+    "title": {
+      "ru": "ГАЙД для тех, кто поступил на предвузовский этап обучения"
+    },
+    "parentName": "gaydy"
+  },
+  {
+    "name": "chto-nado-sdelat-v-1-den-vremennoy-promezhutok-nosit-rekomendatelnyy-kharakter",
+    "title": {
+      "ru": "Что надо сделать в 1 день (временной промежуток носит рекомендательный характер))"
+    },
+    "parentName": "gayd-dlya-tekh-kto-postupil-na-predvuzovskiy-etap-obucheniya"
+  },
+  {
+    "name": "chto-nado-sdelat-v-2-den-vremennoy-promezhutok-nosit-rekomendatelnyy-kharakter",
+    "title": {
+      "ru": "Что надо сделать в 2 день (временной промежуток носит рекомендательный характер)"
+    },
+    "parentName": "gayd-dlya-tekh-kto-postupil-na-predvuzovskiy-etap-obucheniya"
+  },
+  {
+    "name": "chto-nado-sdelat-posle-polucheniya-registratsii",
+    "title": {
+      "ru": "Что надо сделать после получения регистрации"
+    },
+    "parentName": "gayd-dlya-tekh-kto-postupil-na-predvuzovskiy-etap-obucheniya"
+  },
+  {
+    "name": "kontakty-dlya-voprosov",
+    "title": {
+      "ru": "КОНТАКТЫ ДЛЯ ВОПРОСОВ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "meditsinskie-voprosy",
+    "title": {
+      "ru": "МЕДИЦИНСКИЕ ВОПРОСЫ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "migratsionno-vizovye-voprosy",
+    "title": {
+      "ru": "МИГРАЦИОННО-ВИЗОВЫЕ ВОПРОСЫ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "migratsionnaya-karta",
+    "title": {
+      "ru": "+Миграционная карта"
+    },
+    "parentName": "migratsionno-vizovye-voprosy"
+  },
+  {
+    "name": "priglashenie-i-viza",
+    "title": {
+      "ru": "+Приглашение и виза"
+    },
+    "parentName": "migratsionno-vizovye-voprosy"
+  },
+  {
+    "name": "meditsinskoe-osvidetelstvovanie-i-daktiloskopiya-zelenaya-karta",
+    "title": {
+      "ru": "Медицинское освидетельствование и дактилоскопия (зеленая карта)"
+    },
+    "parentName": "migratsionno-vizovye-voprosy"
+  },
+  {
+    "name": "migratsionnyy-uchet-registratsiya-uchtonit-u-vizovogo",
+    "title": {
+      "ru": "Миграционный учет (регистрация) (учтонить у визового)"
+    },
+    "parentName": "migratsionno-vizovye-voprosy"
+  },
+  {
+    "name": "prodlenie-vizy",
+    "title": {
+      "ru": "Продление визы"
+    },
+    "parentName": "migratsionno-vizovye-voprosy"
+  },
+  {
+    "name": "obshchezhitie-i-pervye-raskhody",
+    "title": {
+      "ru": "ОБЩЕЖИТИЕ и ПЕРВЫЕ РАСХОДЫ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "oplata-obucheniya-i-stipendii",
+    "title": {
+      "ru": "ОПЛАТА ОБУЧЕНИЯ И СТИПЕНДИИ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "osnovnye-adresa-geolokatsiya",
+    "title": {
+      "ru": "ОСНОВНЫЕ АДРЕСА - ГЕОЛОКАЦИЯ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "pervye-dokumenty-i-neobkhodimye-protsedury",
+    "title": {
+      "ru": "ПЕРВЫЕ ДОКУМЕНТЫ И НЕОБХОДИМЫЕ ПРОЦЕДУРЫ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "postupit-v-vgu",
+    "title": {
+      "ru": "ПОСТУПИТЬ В ВГУ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "ne-znayu-russkiy-yazyk",
+    "title": {
+      "ru": "+Не знаю русский язык"
+    },
+    "parentName": "postupit-v-vgu"
+  },
+  {
+    "name": "podgotovitelnyy-fakultet",
+    "title": {
+      "ru": "Подготовительный факультет"
+    },
+    "parentName": "ne-znayu-russkiy-yazyk"
+  },
+  {
+    "name": "kak-postupit-na-byudzhet",
+    "title": {
+      "ru": "Как поступить на бюджет"
+    },
+    "parentName": "podgotovitelnyy-fakultet"
+  },
+  {
+    "name": "kak-postupit-po-kontraktu",
+    "title": {
+      "ru": "Как поступить по контракту"
+    },
+    "parentName": "podgotovitelnyy-fakultet"
+  },
+  {
+    "name": "tekstovyy-format",
+    "title": {
+      "ru": "Текстовый формат"
+    },
+    "parentName": "kak-postupit-po-kontraktu"
+  },
+  {
+    "name": "opisanie-predvuzovskogo-etapa",
+    "title": {
+      "ru": "Описание предвузовского этапа"
+    },
+    "parentName": "podgotovitelnyy-fakultet"
+  },
+  {
+    "name": "vypusknye-ekzameny",
+    "title": {
+      "ru": "Выпускные экзамены"
+    },
+    "parentName": "opisanie-predvuzovskogo-etapa"
+  },
+  {
+    "name": "znayu-russkiy-yazyk",
+    "title": {
+      "ru": "Знаю русский язык"
+    },
+    "parentName": "postupit-v-vgu"
+  },
+  {
+    "name": "aspirantura",
+    "title": {
+      "ru": "Аспирантура"
+    },
+    "parentName": "znayu-russkiy-yazyk"
+  },
+  {
+    "name": "bakalavriat",
+    "title": {
+      "ru": "Бакалавриат"
+    },
+    "parentName": "znayu-russkiy-yazyk"
+  },
+  {
+    "name": "postupit-na-byudzhet",
+    "title": {
+      "ru": "+Поступить на бюджет"
+    },
+    "parentName": "bakalavriat"
+  },
+  {
+    "name": "postupayu-posle-predvuzovskogo-etapa-drugogo-universiteta",
+    "title": {
+      "ru": "Поступаю после предвузовского этапа другого университета"
+    },
+    "parentName": "bakalavriat"
+  },
+  {
+    "name": "postupayu-posle-predvuzovsokgo-etapa-vgu",
+    "title": {
+      "ru": "Поступаю после предвузовсокго этапа ВГУ"
+    },
+    "parentName": "bakalavriat"
+  },
+  {
+    "name": "postupayu-kak-znayushchiy-russkiy-yazyk-bez-prokhozhdeniya-predvuzovskogo-etapa",
+    "title": {
+      "ru": "Поступаю, как знающий русский язык, без прохождения предвузовского этапа"
+    },
+    "parentName": "bakalavriat"
+  },
+  {
+    "name": "magistratura",
+    "title": {
+      "ru": "Магистратура"
+    },
+    "parentName": "znayu-russkiy-yazyk"
+  },
+  {
+    "name": "universitet-i-fakultety",
+    "title": {
+      "ru": "УНИВЕРСИТЕТ и ФАКУЛЬТЕТЫ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "institut-mezhdunarodnogo-obrazovaniya",
+    "title": {
+      "ru": "Институт международного образования"
+    },
+    "parentName": "universitet-i-fakultety"
+  },
+  {
+    "name": "obshchaya-informatsiya-o-vgu",
+    "title": {
+      "ru": "Общая информация о ВГУ"
+    },
+    "parentName": "universitet-i-fakultety"
+  },
+  {
+    "name": "fakultety",
+    "title": {
+      "ru": "Факультеты"
+    },
+    "parentName": "universitet-i-fakultety"
+  },
+  {
+    "name": "geologicheskiy-fakultet",
+    "title": {
+      "ru": "Геологический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "zhurnalistiki",
+    "title": {
+      "ru": "Журналистики"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "istoricheskiy-fakultet",
+    "title": {
+      "ru": "Исторический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "matematicheskiy-fakultet",
+    "title": {
+      "ru": "Математический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "mediko-biologicheskiy-fakultet",
+    "title": {
+      "ru": "Медико-биологический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fakultet-geografii-geoekologiii-i-turizma",
+    "title": {
+      "ru": "Факультет географии, геоэкологиии и туризма"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fakultet-kompyuternykh-nauk",
+    "title": {
+      "ru": "Факультет компьютерных наук"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fakultet-mezhdunarodnykh-otnosheniy",
+    "title": {
+      "ru": "Факультет международных отношений"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fakultet-prikladnoy-matematiki-informatiki-i-mekhaniki",
+    "title": {
+      "ru": "Факультет прикладной математики, информатики и механики"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fakultet-romano-germanskoy-filologii",
+    "title": {
+      "ru": "Факультет романо-германской филологии"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fakultet-filosofii-i-psikhologii",
+    "title": {
+      "ru": "Факультет философии и психологии"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "farmatsevticheskiy-fakultet",
+    "title": {
+      "ru": "Фармацевтический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "fizicheskiy-fakultet",
+    "title": {
+      "ru": "Физический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "filologicheskiy-fakultet",
+    "title": {
+      "ru": "Филологический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "khimicheskiy-fakultet",
+    "title": {
+      "ru": "Химический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "ekonomicheskiy-fakultet",
+    "title": {
+      "ru": "Экономический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "yuridicheskiy-fakultet",
+    "title": {
+      "ru": "Юридический факультет"
+    },
+    "parentName": "fakultety"
+  },
+  {
+    "name": "ucheba-i-raspisanie",
+    "title": {
+      "ru": "УЧЕБА и РАСПИСАНИЕ"
+    },
+    "parentName": "start-group"
+  },
+  {
+    "name": "bakalavriat-ucheba-i-raspisanie",
+    "title": {
+      "ru": "Бакалавриат"
+    },
+    "parentName": "ucheba-i-raspisanie"
+  },
+  {
+    "name": "magistrartura",
+    "title": {
+      "ru": "Магистрартура"
+    },
+    "parentName": "ucheba-i-raspisanie"
+  },
+  {
+    "name": "mezhdunarodnaya-akademicheskaya-mobilnosti-dlya-rossiyskikh-studentov-vgu",
+    "title": {
+      "ru": "Международная академическая мобильности (для российских студентов ВГУ)"
+    },
+    "parentName": "ucheba-i-raspisanie"
+  },
+  {
+    "name": "predvuzovskiy-etap-russkiy-yazyk-profilnye-predmety",
+    "title": {
+      "ru": "Предвузовский этап (русский язык+профильные предметы)"
+    },
+    "parentName": "ucheba-i-raspisanie"
+  }
+]

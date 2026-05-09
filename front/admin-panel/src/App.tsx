@@ -29,6 +29,7 @@ import {
   mapGroupDto,
   mapQuestion,
   mapUiMessage,
+  normalizeDisplayText,
   registerAdmin,
   setAuthToken,
   updateGroupTitle,
@@ -73,6 +74,7 @@ type QuestionLookup = {
 } | null
 
 const THEME_STORAGE_KEY = 'admin-panel-theme'
+const ADMIN_BASE_PATH = '/admin'
 
 const slugify = (value: string) =>
   value
@@ -81,15 +83,11 @@ const slugify = (value: string) =>
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '')
 
-const createEmptyLocalizedDraft = (): LocalizedDraft => ({
-  ru: '',
-  en: '',
-})
+const createEmptyLocalizedDraft = (): LocalizedDraft =>
+  Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, ''])) as LocalizedDraft
 
-const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft => ({
-  ru: value?.ru ?? '',
-  en: value?.en ?? '',
-})
+const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft =>
+  Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, value?.[code] ?? ''])) as LocalizedDraft
 
 const isRichTextEmpty = (value: string) =>
   value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() === ''
@@ -112,8 +110,9 @@ const normalizeRichTextForRequest = (value: string) =>
     .replace(/<\/p\s*>/gi, '\n\n')
     .replace(/<div\b[^>]*>/gi, '')
     .replace(/<\/div\s*>/gi, '\n')
+    .replace(/<span\b([^>]*)class=(['"])([^'"]*\beditor-hidden\b[^'"]*)\2([^>]*)>/gi, '<span class="editor-hidden">')
     .replace(/<pre\b([^>]*)class=(['"])language-([^'"]+)\2([^>]*)>/gi, '<pre language="$3">')
-    .replace(/<(?!\/?(?:b|i|code|s|u|pre)\b)[^>]+>/gi, '')
+    .replace(/<(?!\/?(?:b|i|code|s|u|pre|span)\b)[^>]+>/gi, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 
@@ -166,7 +165,10 @@ function getInitialTheme(): Theme {
 function parseRoute(pathname: string): AppRoute {
   const normalizedPathname =
     pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
-  const segments = normalizedPathname.split('/').filter(Boolean).map(decodeURIComponent)
+  const withoutAdminBase = normalizedPathname.startsWith(ADMIN_BASE_PATH)
+    ? normalizedPathname.slice(ADMIN_BASE_PATH.length) || '/'
+    : normalizedPathname
+  const segments = withoutAdminBase.split('/').filter(Boolean).map(decodeURIComponent)
 
   if (!segments.length) {
     return { type: 'dashboard' }
@@ -198,21 +200,21 @@ function parseRoute(pathname: string): AppRoute {
 function buildRoutePath(route: AppRoute) {
   switch (route.type) {
     case 'login':
-      return '/login'
+      return `${ADMIN_BASE_PATH}/login`
     case 'dashboard':
-      return '/'
+      return ADMIN_BASE_PATH
     case 'statistics':
-      return '/statistics'
+      return `${ADMIN_BASE_PATH}/statistics`
     case 'registration':
-      return '/registration'
+      return `${ADMIN_BASE_PATH}/registration`
     case 'technical-questions':
-      return '/technical-questions'
+      return `${ADMIN_BASE_PATH}/technical-questions`
     case 'groups':
       return route.path.length
-        ? `/groups/${route.path.map(encodeURIComponent).join('/')}`
-        : '/groups'
+        ? `${ADMIN_BASE_PATH}/groups/${route.path.map(encodeURIComponent).join('/')}`
+        : `${ADMIN_BASE_PATH}/groups`
     case 'question':
-      return `/groups/${[...route.path, route.questionName].map(encodeURIComponent).join('/')}`
+      return `${ADMIN_BASE_PATH}/groups/${[...route.path, route.questionName].map(encodeURIComponent).join('/')}`
   }
 }
 
@@ -767,10 +769,9 @@ function App() {
         break
       case 'create-question':
         setTitleValues(createEmptyLocalizedDraft())
-        setTextValues({
-          ru: '<p></p>',
-          en: '<p></p>',
-        })
+        setTextValues(
+          Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, '<p></p>'])) as LocalizedDraft,
+        )
         break
       default:
         setTitleValues(createEmptyLocalizedDraft())
@@ -985,8 +986,10 @@ function App() {
     try {
       const response = await loginAdmin(login, password)
       setAuthToken(response.token)
+      const dashboardRoute = { type: 'dashboard' } satisfies AppRoute
+      window.history.replaceState(null, '', buildRoutePath(dashboardRoute))
+      setRoute(dashboardRoute)
       setIsAuthenticated(true)
-      navigate({ type: 'dashboard' }, { replace: true })
     } catch (error) {
       setErrorMessage(getErrorMessage(error))
     } finally {
@@ -1137,7 +1140,6 @@ function App() {
       {route.type !== 'question' && route.type !== 'login' && errorMessage && (
         <div className="app-status app-status_error">{errorMessage}</div>
       )}
-      {isLoading && route.type !== 'login' && <div className="app-status">Loading data...</div>}
 
       {route.type === 'login' && (
         <LoginPage
@@ -1263,16 +1265,30 @@ function App() {
           )}
         </OverlayModal>
       )}
+
+      {(isLoading || isSubmitting) && (
+        <div className="app-loading-overlay" role="status" aria-live="polite" aria-busy="true">
+          <div className="app-loading-indicator">
+            <span className="app-loading-indicator__spinner" aria-hidden="true" />
+            <span className="app-loading-indicator__label">
+              {isLoading ? 'Загрузка данных...' : 'Сохранение изменений...'}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message
+  if (error instanceof Error) {
+    const normalizedMessage = normalizeDisplayText(error.message)
+    if (normalizedMessage) {
+      return normalizedMessage
+    }
   }
 
-  return 'Request failed'
+  return 'Не удалось выполнить запрос'
 }
 
 type TextFieldProps = {

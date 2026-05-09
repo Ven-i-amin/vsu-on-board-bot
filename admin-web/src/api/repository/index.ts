@@ -1,0 +1,6 @@
+export { authRepository } from './authRepository'
+export { groupRepository } from './groupRepository'
+export { languageRepository } from './languageRepository'
+export { questionRepository } from './questionRepository'
+export { statisticRepository } from './statisticRepository'
+export { uiMessageRepository } from './uiMessageRepository'

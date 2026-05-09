@@ -119,6 +119,55 @@
   color: #9f2e2e;
 }
 
+.app-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--app-surface) 74%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.app-loading-indicator {
+  min-width: min(22rem, calc(100vw - 2rem));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--app-border);
+  border-radius: 1.1rem;
+  background: var(--app-surface-header);
+  box-shadow: var(--app-control-shadow);
+  color: var(--app-text-strong);
+}
+
+.app-loading-indicator__spinner {
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 2px solid var(--app-border);
+  border-top-color: var(--app-text-strong);
+  border-radius: 999px;
+  animation: app-loading-spin 0.75s linear infinite;
+  flex: 0 0 auto;
+}
+
+.app-loading-indicator__label {
+  font-weight: 600;
+}
+
+@keyframes app-loading-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .auth-page {
   min-height: calc(100svh - 5.5rem);
   display: flex;
