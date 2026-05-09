@@ -1,0 +1,16 @@
+server:
+  port: ${TG_BOT_PORT:8082}
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+core:
+  base-url: ${CORE_BASE_URL:http://localhost:8081}
+
+gateway:
+  base-url: ${GATEWAY_BASE_URL:http://localhost:443}
+  internal:
+    token: ${TG_BOT_INTERNAL_TOKEN:}

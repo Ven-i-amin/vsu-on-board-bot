@@ -4,6 +4,7 @@ import globeIcon from '../assets/fi-rr-globe.svg'
 import arrowLeftIcon from '../assets/fi-rr-angle-left.svg'
 import RichTextEditor from '../widget/RichTextEditor'
 import {
+  AVAILABLE_LANGUAGE_CODES,
   AVAILABLE_LANGUAGES,
   type AvailableLanguageCode,
   type LocalizedText,
@@ -22,15 +23,11 @@ type QuestionEditorPageProps = {
   onDelete: (questionId: string) => Promise<void>
 }
 
-const createEmptyLocalizedDraft = (): LocalizedDraft => ({
-  ru: '',
-  en: '',
-})
+const createEmptyLocalizedDraft = (): LocalizedDraft =>
+  Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, ''])) as LocalizedDraft
 
-const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft => ({
-  ru: value?.ru ?? '',
-  en: value?.en ?? '',
-})
+const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft =>
+  Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, value?.[code] ?? ''])) as LocalizedDraft
 
 const isRichTextEmpty = (value: string) =>
   value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() === ''
@@ -53,15 +50,16 @@ const normalizeRichTextForRequest = (value: string) =>
     .replace(/<\/p\s*>/gi, '\n\n')
     .replace(/<div\b[^>]*>/gi, '')
     .replace(/<\/div\s*>/gi, '\n')
+    .replace(/<span\b([^>]*)class=(['"])([^'"]*\beditor-hidden\b[^'"]*)\2([^>]*)>/gi, '<span class="editor-hidden">')
     .replace(/<pre\b([^>]*)class=(['"])language-([^'"]+)\2([^>]*)>/gi, '<pre language="$3">')
-    .replace(/<(?!\/?(?:b|i|code|s|u|pre)\b)[^>]+>/gi, '')
+    .replace(/<(?!\/?(?:b|i|code|s|u|pre|span)\b)[^>]+>/gi, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 
 const buildTitlePayload = (draft: LocalizedDraft): LocalizedText => {
   const next: LocalizedText = {}
 
-  for (const code of ['ru', 'en'] as const) {
+  for (const code of AVAILABLE_LANGUAGE_CODES) {
     const value = draft[code].trim()
     if (value) {
       next[code] = value
@@ -74,7 +72,7 @@ const buildTitlePayload = (draft: LocalizedDraft): LocalizedText => {
 const buildTextPayload = (draft: LocalizedDraft): LocalizedText => {
   const next: LocalizedText = {}
 
-  for (const code of ['ru', 'en'] as const) {
+  for (const code of AVAILABLE_LANGUAGE_CODES) {
     const value = draft[code]
     if (!isRichTextEmpty(value)) {
       next[code] = normalizeRichTextForRequest(value)
@@ -88,7 +86,7 @@ const areLocalizedDraftsEqual = (
   left: LocalizedDraft,
   right: LocalizedDraft,
   normalizer: (value: string) => string = (value) => value,
-) => (['ru', 'en'] as const).every((code) => normalizer(left[code]) === normalizer(right[code]))
+) => AVAILABLE_LANGUAGE_CODES.every((code) => normalizer(left[code]) === normalizer(right[code]))
 
 function QuestionEditorPage({
   question,

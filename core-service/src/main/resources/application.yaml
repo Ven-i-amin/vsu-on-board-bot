@@ -1,0 +1,34 @@
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  mongodb:
+    database: ${MONGO_NAME:foreign_bot}
+    host: ${MONGO_WAY:mongo}
+    port: ${MONGO_PORT:27017}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+server:
+  port: ${CORE_PORT:8081}
+
+app:
+  database:
+    reset-on-startup: ${RESET_MONGO_ON_STARTUP:false}
+  admin:
+    bootstrap:
+      email: ${ADMIN_BOOTSTRAP_EMAIL:admin}
+      password: ${ADMIN_BOOTSTRAP_PASSWORD:admin}
+  jwt:
+    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY:}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:24}
+    key-id: ${JWT_KEY_ID:core-admin-rsa-key}
