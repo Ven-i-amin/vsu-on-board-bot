@@ -26,7 +26,7 @@ services:
   core:
     build:
       context: .
-      dockerfile: ./core/Dockerfile
+      dockerfile: ./core-service/Dockerfile
     restart: unless-stopped
     depends_on:
       mongo:
@@ -52,7 +52,7 @@ services:
   tg-bot:
     build:
       context: .
-      dockerfile: ./tg_bot/Dockerfile
+      dockerfile: ./tg-bot-service/Dockerfile
     restart: unless-stopped
     depends_on:
       core:

@@ -5,7 +5,7 @@ WORKDIR /workspace
 
 COPY contract ./contract
 COPY front ./front
-COPY core ./core
+COPY core-service ./core
 
 WORKDIR /workspace/core
 
