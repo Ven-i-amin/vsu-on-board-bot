@@ -5,57 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="00546d66-a877-44f1-ad54-d01947be0834" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/admin-panel/src/pages/Explorer.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-panel/src/widget/GroupPanel.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/api/entities/Group.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/api/entities/Question.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-angle-left.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-angle-small-right.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-angle-up.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-check.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-circle-small.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-cross-small.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-file.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-folder.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-globe.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-interrogation.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-menu-dots-vertical.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-moon.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-pencil.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-plus.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-spinner-alt.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-sun.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rr-user.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rs-document.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/fi-rs-trash.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/hero.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/react.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/assets/vite.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/shared/ButtonPanel.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/admin-web/src/shared/InlineBlock.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/App.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/api/adminApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/api/adminApi.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/entities/models/Session.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/pages/AdminPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/pages/AdminPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/pages/QuestionEditorPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/pages/QuestionEditorPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/pages/StatisticsPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/pages/StatisticsPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/widget/Group.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/widget/Group.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/widget/RichTextEditor.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/widget/RichTextEditor.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/widget/Section.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/widget/Section.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/widget/StatsPanel.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/widget/StatsPanel.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/widget/StatsPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/widget/StatsPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/widget/UiMessageItem.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/widget/UiMessageItem.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/vite.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg_bot/src/main/java/ru/vsu/tgbot/services/business/GroupServiceWithoutTree.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg_bot/src/main/java/ru/vsu/tgbot/services/business/GroupServiceWithoutTreeImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg_bot/src/main/java/ru/vsu/tgbot/services/core/GroupClientWithoutTree.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg_bot/src/main/java/ru/vsu/tgbot/services/core/GroupClientWithoutTreeImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tg-bot-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/Dockerfile" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,6 +58,10 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -150,6 +108,10 @@
       <workItem from="1778156267107" duration="5033000" />
       <workItem from="1778161392589" duration="1364000" />
       <workItem from="1778190148658" duration="613000" />
+      <workItem from="1778771588335" duration="595000" />
+      <workItem from="1778785256441" duration="10000" />
+      <workItem from="1779221173755" duration="2934000" />
+      <workItem from="1779373003653" duration="874000" />
     </task>
     <servers />
   </component>
