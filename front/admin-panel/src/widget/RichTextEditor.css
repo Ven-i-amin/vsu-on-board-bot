@@ -1,0 +1,59 @@
+.editor {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.editor__tool {
+  min-width: 2.5rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.8rem;
+  background: var(--app-control-bg);
+  color: var(--app-text-strong);
+  cursor: pointer;
+}
+
+.editor__tool_active {
+  background: var(--app-control-bg-hover);
+  border-color: var(--app-border-strong);
+  box-shadow: inset 0 0 0 1px var(--app-border-strong);
+}
+
+.editor__surface {
+  min-height: 12rem;
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  background: var(--app-surface);
+  color: var(--app-text-strong);
+}
+
+.editor__surface:focus-within {
+  outline: 2px solid var(--app-border-strong);
+  outline-offset: 0;
+}
+
+.editor__surface .tiptap {
+  min-height: 12rem;
+  padding: 1rem;
+  color: var(--app-text-strong);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.editor__surface .tiptap:focus {
+  outline: none;
+}
+
+.editor__surface .editor-hidden {
+  color: var(--app-text-muted);
+}
+
+.editor__surface a {
+  color: #3b82f6;
+}
