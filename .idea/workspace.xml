@@ -4,126 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00546d66-a877-44f1-ad54-d01947be0834" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/materials/курсовая.docx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/materials/презентация.pptx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/contract/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/.gradle/buildOutputCleanup/cache.properties" beforeDir="false" afterPath="$PROJECT_DIR$/contract/.gradle/buildOutputCleanup/cache.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/build/libs/contract-0.0.1-SNAPSHOT.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/build/tmp/compileJava/compileTransaction/stash-dir/LanguageResponseDto.class.uniqueId0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/build/tmp/compileJava/previous-compilation-data.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/build/tmp/jar/MANIFEST.MF" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/contract/src/main/java/ru/vsu/contract/model/response/GroupResponseDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/contract/src/main/java/ru/vsu/contract/model/response/GroupResponseDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/CoreApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/CoreApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/AdminBootstrap.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/AdminBootstrap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/LanguageBootstrap.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/LanguageBootstrap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/RootContentBootstrap.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/RootContentBootstrap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/RootGroupBootstrap.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/RootGroupBootstrap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/UiMessageBootstrap.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/bootstrap/UiMessageBootstrap.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/GroupMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/GroupMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/LanguageMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/LanguageMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/QuestionFileMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/QuestionFileMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/QuestionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/QuestionMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/ResponseMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/ResponseMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/UiMessageMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/UiMessageMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/UserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/component/mapper/UserMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/config/ApiJwtInterceptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/config/ApiJwtInterceptor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/AuthApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/AuthApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/GroupApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/GroupApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/LanguageApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/LanguageApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/QuestionApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/QuestionApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/StatisticApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/StatisticApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/UiMessageApiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/api/UiMessageApiController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/GroupController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/GroupController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/LanguageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/LanguageController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/QuestionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/QuestionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/UiMessageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/UiMessageController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/bot/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/gateway/JwksController.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/controller/gateway/JwksController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/GroupDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/GroupDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/GroupNodeDto.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/GroupTreeDto.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/QuestionDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/QuestionDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/QuestionLocalizedDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/dto/QuestionLocalizedDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/entity/Group.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/entity/Group.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/entity/Question.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/entity/Question.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/entity/QuestionFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/entity/QuestionFile.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/request/QuestionFileRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/model/request/QuestionFileRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/repository/local/LocalStorageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/repository/local/LocalStorageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/GroupService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/GroupService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/GroupServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/GroupServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/LanguageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/LanguageService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/LanguageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/LanguageServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/QuestionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/QuestionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/QuestionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/QuestionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/UiMessageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/UiMessageService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/UiMessageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/business/UiMessageServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/security/JwtService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/security/JwtService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/security/JwtServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/security/JwtServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/storage/QuestionFileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/storage/QuestionFileService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/storage/QuestionFileServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/storage/QuestionFileServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/user/AdminServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/user/AdminServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/user/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/service/user/UserServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/java/ru/vsu/core/util/GroupTreeUtil.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core-service/src/main/resources/startvalues/groups.txt" beforeDir="false" afterPath="$PROJECT_DIR$/core-service/src/main/resources/startvalues/groups.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/api/adminApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/api/adminApi.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/entities/models/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/entities/models/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/pages/AdminPage.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/pages/AdminPage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/pages/AdminPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/pages/AdminPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/admin-panel/src/pages/QuestionEditorPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/admin-panel/src/pages/QuestionEditorPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/checksums/checksums.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/checksums/md5-checksums.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/checksums/sha1-checksums.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/executionHistory/executionHistory.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/executionHistory/executionHistory.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/fileChanges/last-build.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/fileHashes/fileHashes.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/fileHashes/fileHashes.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/fileHashes/resourceHashesCache.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/9.3.1/gc.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/buildOutputCleanup/cache.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/file-system.probe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.gradle/vcs-1/gc.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/.idea/.name" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/build/reports/problems/problems-report.html" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/build/reports/problems/problems-report.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/components/bot/BotMessageSender.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/components/bot/BotMessageSender.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/components/mapper/CoreResponseMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/components/mapper/CoreResponseMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/config/AppConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/config/AppConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/model/dto/GroupDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/model/dto/GroupDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/model/dto/SessionDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/model/dto/SessionDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/model/entity/Session.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/model/entity/Session.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/repository/FileStorageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/repository/FileStorageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/repository/local/LocalStorageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/repository/local/LocalStorageRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/business/GroupWindowService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/business/GroupWindowServiceImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/business/QueryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/business/QueryServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/GroupService.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/GroupService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/GroupServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/GroupServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/QuestionClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/QuestionClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/QuestionClientImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/core/QuestionClientImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/session/SessionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/session/SessionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/session/SessionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/session/SessionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/global/MainMenuHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/global/MainMenuHandlerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/GroupHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/GroupHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/OtherLanguageHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/OtherLanguageHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/QuestionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/QuestionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/WelcomeHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/services/statehandler/message/WelcomeHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/util/MessageUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/java/ru/vsu/tgbot/util/MessageUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tg-bot-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/tg-bot-service/src/main/resources/application.yaml" afterDir="false" />
-    </list>
+    <list default="true" id="00546d66-a877-44f1-ad54-d01947be0834" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -166,7 +47,7 @@
     "bazel.project.detector.is.bazel.project": "true",
     "git-widget-placeholder": "featureTree",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/venya/projects/foreign_bot",
+    "last_opened_file_path": "C:/Users/venya/projects/foreign_bot/materials",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -181,6 +62,9 @@
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\venya\projects\foreign_bot\materials" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\venya\projects\foreign_bot\materials" />
       <recent name="C:\Users\venya\projects\foreign_bot" />
@@ -232,7 +116,7 @@
       <workItem from="1780408398693" duration="608000" />
       <workItem from="1780573232080" duration="11555000" />
       <workItem from="1780676422894" duration="5854000" />
-      <workItem from="1780706422094" duration="9634000" />
+      <workItem from="1780706422094" duration="9884000" />
     </task>
     <servers />
   </component>
