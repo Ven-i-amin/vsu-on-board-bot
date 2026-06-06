@@ -11,6 +11,11 @@ type UiMessageItemProps = {
 
 function UiMessageItem({ message, langCode = 'ru', onEdit }: UiMessageItemProps) {
   const title = message.text[langCode] ?? message.text.ru ?? message.text.en ?? message.name
+  const description =
+    message.description[langCode]
+    ?? message.description.ru
+    ?? message.description.en
+    ?? ''
 
   return (
     <div
@@ -27,7 +32,10 @@ function UiMessageItem({ message, langCode = 'ru', onEdit }: UiMessageItemProps)
     >
       <div className="browser__item-main">
         <img className="browser__item-icon" src={fileIcon} alt="" aria-hidden="true" />
-        <span className="browser__item-label">{title}</span>
+        <div className="browser__item-copy">
+          <span className="browser__item-label">{title}</span>
+          {description && <span className="browser__item-description">{description}</span>}
+        </div>
       </div>
 
       <div className="browser__item-actions">

@@ -1,0 +1,15 @@
+package ru.vsu.core.model.dto;
+
+import lombok.Builder;
+
+import java.util.List;
+import java.util.Map;
+
+@Builder
+public record GroupDto(
+        String groupId,
+        String name,
+        Map<String, String> title,
+        List<String> parents
+) {
+}

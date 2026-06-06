@@ -41,6 +41,24 @@ const markNameByAction: Record<ToolbarAction, string> = {
 const hasMark = (node: ProseMirrorNode | null, markName: string) =>
   Boolean(node?.marks.some((mark) => mark.type.name === markName))
 
+const normalizeEditorContent = (value: string) => {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return '<p></p>'
+  }
+
+  // Preserve already-structured block HTML, but still rebuild plain/inline markup text
+  // from newline-based storage so line breaks survive reopening the editor.
+  if (/<(?:p|div|br|ul|ol|li|blockquote|h[1-6]|pre)\b/i.test(trimmed)) {
+    return trimmed
+  }
+
+  return trimmed
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('')
+}
+
 function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   const [linkPrompt, setLinkPrompt] = useState<LinkPromptState>({ open: false, href: '' })
 
@@ -70,7 +88,7 @@ function RichTextEditor({ value, onChange }: RichTextEditorProps) {
       return
     }
 
-    const normalizedValue = value || '<p></p>'
+    const normalizedValue = normalizeEditorContent(value)
 
     if (editor.getHTML() !== normalizedValue) {
       editor.commands.setContent(normalizedValue, { emitUpdate: false })

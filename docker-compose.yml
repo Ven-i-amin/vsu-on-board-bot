@@ -1,0 +1,105 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" mongodb://localhost:27017/admin | grep 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - redis_data:/data
+
+  core:
+    build:
+      context: .
+      dockerfile: ./core-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    ports:
+      - "8081:8081"
+    volumes:
+      - storage_data:/storage
+    environment:
+      CORE_PORT: 8081
+      MONGO_WAY: mongo
+      MONGO_PORT: 27017
+      MONGO_NAME: foreign_bot
+      RESET_MONGO_ON_STARTUP: ${RESET_MONGO_ON_STARTUP:-true}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-admin}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-admin}
+
+  tg-bot:
+    build:
+      context: .
+      dockerfile: ./tg-bot-service/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      core:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - storage_data:/storage
+    environment:
+      TG_BOT_PORT: 8082
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CORE_BASE_URL: http://core:8081
+      TELEGRAM_BOT_MODE: ${TELEGRAM_BOT_MODE:-long-polling}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_NAME:-}
+      TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL:-}
+      TELEGRAM_WEBHOOK_PATH: ${TELEGRAM_WEBHOOK_PATH:-/telegram/webhook}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      TELEGRAM_PROXY_ENABLED: ${TELEGRAM_PROXY_ENABLED:-false}
+      TELEGRAM_PROXY_TYPE: ${TELEGRAM_PROXY_TYPE:-HTTP}
+      TELEGRAM_PROXY_HOST: ${TELEGRAM_PROXY_HOST:-}
+      TELEGRAM_PROXY_PORT: ${TELEGRAM_PROXY_PORT:-0}
+      TELEGRAM_PROXY_USERNAME: ${TELEGRAM_PROXY_USERNAME:-}
+      TELEGRAM_PROXY_PASSWORD: ${TELEGRAM_PROXY_PASSWORD:-}
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      core:
+        condition: service_healthy
+      tg-bot:
+        condition: service_started
+    ports:
+      - "80:443"
+    environment:
+      API_GATEWAY_PORT: 443
+      CORE_URI: http://core:8081
+      TG_BOT_URI: http://tg-bot:8082
+      JAVA_TOOL_OPTIONS: ${API_GATEWAY_JAVA_TOOL_OPTIONS:-}
+
+volumes:
+  mongo_data:
+  redis_data:
+  storage_data:

@@ -7,6 +7,5 @@ export {
 export type { AvailableLanguageCode } from './Language'
 export { Question } from './Question'
 export type { LocalizedText } from './Question'
-export { Session } from './Session'
 export { UiMessage } from './UiMessage'
 export { User } from './User'

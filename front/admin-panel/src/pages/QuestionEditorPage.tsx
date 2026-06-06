@@ -3,12 +3,19 @@ import './AdminPage.css'
 import globeIcon from '../assets/fi-rr-globe.svg'
 import arrowLeftIcon from '../assets/fi-rr-angle-left.svg'
 import RichTextEditor from '../widget/RichTextEditor'
+import { FileAttachments } from '../widget/FileAttachments'
 import {
+  AVAILABLE_LANGUAGE_CODES,
   AVAILABLE_LANGUAGES,
   type AvailableLanguageCode,
   type LocalizedText,
   Question,
 } from '../entities/models'
+import {
+  type QuestionFileDto,
+  fetchQuestionFiles,
+  uploadFile,
+} from '../api/adminApi'
 
 type LocalizedDraft = Record<AvailableLanguageCode, string>
 
@@ -18,19 +25,15 @@ type QuestionEditorPageProps = {
   isSubmitting?: boolean
   errorMessage?: string
   onBack: () => void
-  onSave: (questionId: string, title: LocalizedText, text: LocalizedText) => Promise<void>
+  onSave: (questionId: string, title: LocalizedText, text: LocalizedText, fileHashes: string[]) => Promise<void>
   onDelete: (questionId: string) => Promise<void>
 }
 
-const createEmptyLocalizedDraft = (): LocalizedDraft => ({
-  ru: '',
-  en: '',
-})
+const createEmptyLocalizedDraft = (): LocalizedDraft =>
+  Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, ''])) as LocalizedDraft
 
-const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft => ({
-  ru: value?.ru ?? '',
-  en: value?.en ?? '',
-})
+const createLocalizedDraft = (value?: LocalizedText): LocalizedDraft =>
+  Object.fromEntries(AVAILABLE_LANGUAGE_CODES.map((code) => [code, value?.[code] ?? ''])) as LocalizedDraft
 
 const isRichTextEmpty = (value: string) =>
   value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() === ''
@@ -53,15 +56,16 @@ const normalizeRichTextForRequest = (value: string) =>
     .replace(/<\/p\s*>/gi, '\n\n')
     .replace(/<div\b[^>]*>/gi, '')
     .replace(/<\/div\s*>/gi, '\n')
+    .replace(/<span\b([^>]*)class=(['"])([^'"]*\beditor-hidden\b[^'"]*)\2([^>]*)>/gi, '<span class="editor-hidden">')
     .replace(/<pre\b([^>]*)class=(['"])language-([^'"]+)\2([^>]*)>/gi, '<pre language="$3">')
-    .replace(/<(?!\/?(?:b|i|code|s|u|pre)\b)[^>]+>/gi, '')
+    .replace(/<(?!\/?(?:b|i|code|s|u|pre|span)\b)[^>]+>/gi, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 
 const buildTitlePayload = (draft: LocalizedDraft): LocalizedText => {
   const next: LocalizedText = {}
 
-  for (const code of ['ru', 'en'] as const) {
+  for (const code of AVAILABLE_LANGUAGE_CODES) {
     const value = draft[code].trim()
     if (value) {
       next[code] = value
@@ -74,7 +78,7 @@ const buildTitlePayload = (draft: LocalizedDraft): LocalizedText => {
 const buildTextPayload = (draft: LocalizedDraft): LocalizedText => {
   const next: LocalizedText = {}
 
-  for (const code of ['ru', 'en'] as const) {
+  for (const code of AVAILABLE_LANGUAGE_CODES) {
     const value = draft[code]
     if (!isRichTextEmpty(value)) {
       next[code] = normalizeRichTextForRequest(value)
@@ -88,7 +92,7 @@ const areLocalizedDraftsEqual = (
   left: LocalizedDraft,
   right: LocalizedDraft,
   normalizer: (value: string) => string = (value) => value,
-) => (['ru', 'en'] as const).every((code) => normalizer(left[code]) === normalizer(right[code]))
+) => AVAILABLE_LANGUAGE_CODES.every((code) => normalizer(left[code]) === normalizer(right[code]))
 
 function QuestionEditorPage({
   question,
@@ -102,6 +106,11 @@ function QuestionEditorPage({
   const [activeLanguage, setActiveLanguage] = useState<AvailableLanguageCode>(langCode)
   const [titleValues, setTitleValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
   const [textValues, setTextValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
+  const [fileList, setFileList] = useState<QuestionFileDto[]>([])
+  const [originalFileHashes, setOriginalFileHashes] = useState<ReadonlySet<string>>(new Set())
+  const [isFilesLoading, setIsFilesLoading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
   useEffect(() => {
     if (!question) {
@@ -111,18 +120,55 @@ function QuestionEditorPage({
     setTitleValues(createLocalizedDraft(question.title))
     setTextValues(createLocalizedDraft(question.text))
     setActiveLanguage(langCode)
+    setFileList([])
+    setOriginalFileHashes(new Set())
+    setUploadError('')
+
+    setIsFilesLoading(true)
+    fetchQuestionFiles(question.questionId)
+      .then((files) => {
+        setFileList(files)
+        setOriginalFileHashes(new Set(files.map((f) => f.fileHash)))
+      })
+      .catch(() => {})
+      .finally(() => setIsFilesLoading(false))
   }, [langCode, question])
 
   const originalTitleValues = useMemo(() => createLocalizedDraft(question?.title), [question])
   const originalTextValues = useMemo(() => createLocalizedDraft(question?.text), [question])
+
+  const isFilesChanged = useMemo(() => {
+    if (isFilesLoading) return false
+    if (fileList.length !== originalFileHashes.size) return true
+    return fileList.some((f) => !originalFileHashes.has(f.fileHash))
+  }, [fileList, originalFileHashes, isFilesLoading])
+
   const isUnchanged =
     areLocalizedDraftsEqual(titleValues, originalTitleValues, (value) => value.trim())
     && areLocalizedDraftsEqual(textValues, originalTextValues, (value) => normalizeRichTextForRequest(value))
+    && !isFilesChanged
   const isSaveDisabled =
     !question || isSubmitting || !titleValues.ru.trim() || isRichTextEmpty(textValues[activeLanguage]) || isUnchanged
 
   const titleValue = titleValues[activeLanguage]
   const textValue = textValues[activeLanguage] || '<p></p>'
+
+  async function handleFileSelect(file: File) {
+    setUploadError('')
+    setIsUploading(true)
+    try {
+      const uploaded = await uploadFile(file)
+      setFileList((current) => [...current, uploaded])
+    } catch {
+      setUploadError('Не удалось загрузить файл')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  function removeFile(fileHash: string) {
+    setFileList((current) => current.filter((f) => f.fileHash !== fileHash))
+  }
 
   if (!question) {
     return (
@@ -182,6 +228,20 @@ function QuestionEditorPage({
               />
             </div>
 
+            <div className="modal-form__field">
+              <span className="modal-form__label">
+                {isFilesLoading ? 'Загрузка файлов...' : 'Прикреплённые файлы'}
+              </span>
+              <FileAttachments
+                files={fileList}
+                isUploading={isUploading}
+                isDisabled={isSubmitting || isFilesLoading}
+                uploadError={uploadError}
+                onFileSelect={handleFileSelect}
+                onRemove={removeFile}
+              />
+            </div>
+
             <div className="question-editor__footer">
               <button
                 className="question-editor__delete"
@@ -202,6 +262,7 @@ function QuestionEditorPage({
                       question.questionId,
                       buildTitlePayload(titleValues),
                       buildTextPayload(textValues),
+                      fileList.map((f) => f.fileHash),
                     )
                   }
                 >

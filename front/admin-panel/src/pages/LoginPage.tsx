@@ -1,9 +1,23 @@
 import { useState } from 'react'
 import '../App.css'
 
-function LoginPage() {
+type LoginPageProps = {
+  errorMessage?: string
+  isSubmitting?: boolean
+  onSubmit: (login: string, password: string) => Promise<void> | void
+}
+
+function LoginPage({ errorMessage = '', isSubmitting = false, onSubmit }: LoginPageProps) {
   const [login, setLogin] = useState('')
   const [password, setPassword] = useState('')
+
+  const handleSubmit = async () => {
+    if (!login.trim() || !password.trim() || isSubmitting) {
+      return
+    }
+
+    await onSubmit(login.trim(), password)
+  }
 
   return (
     <main className="auth-page">
@@ -33,13 +47,16 @@ function LoginPage() {
             />
           </label>
 
+          {errorMessage && <div className="auth-card__error">{errorMessage}</div>}
+
           <div className="auth-card__actions">
             <button
               className="modal-form__button"
               type="button"
-              disabled={!login.trim() || !password.trim()}
+              disabled={!login.trim() || !password.trim() || isSubmitting}
+              onClick={() => void handleSubmit()}
             >
-              Войти
+              {isSubmitting ? 'Вход...' : 'Войти'}
             </button>
           </div>
         </div>

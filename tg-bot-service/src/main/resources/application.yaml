@@ -1,0 +1,33 @@
+server:
+  port: ${TG_BOT_PORT:8082}
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+core:
+  base-url: ${CORE_BASE_URL:http://localhost:8081}
+
+redis:
+  session:
+    timespan: ${SESSION_TIME_SPAN:120}
+  groupnav:
+    timespan: ${GROUP_NAV_TIME_SPAN:600}
+
+telegram:
+  bot:
+    mode: ${TELEGRAM_BOT_MODE:long-polling}
+    username: ${TELEGRAM_BOT_USERNAME:}
+    token: ${TELEGRAM_BOT_TOKEN:}
+    webhook-path: ${TELEGRAM_WEBHOOK_PATH:/telegram/webhook}
+    webhook-url: ${TELEGRAM_WEBHOOK_URL:}
+    webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:}
+  proxy:
+    enabled: ${TELEGRAM_PROXY_ENABLED:false}
+    type: ${TELEGRAM_PROXY_TYPE:HTTP}
+    host: ${TELEGRAM_PROXY_HOST:}
+    port: ${TELEGRAM_PROXY_PORT:0}
+    username: ${TELEGRAM_PROXY_USERNAME:}
+    password: ${TELEGRAM_PROXY_PASSWORD:}

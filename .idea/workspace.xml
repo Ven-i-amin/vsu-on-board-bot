@@ -18,18 +18,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Ven-i-amin"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Ven-i-amin&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "git@github.com:Ven-i-amin/vsu-on-board-bot.git",
-    "accountId": "d118cc50-9539-4f49-826b-cfe204a7d33b"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:Ven-i-amin/vsu-on-board-bot.git&quot;,
+    &quot;accountId&quot;: &quot;d118cc50-9539-4f49-826b-cfe204a7d33b&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -44,19 +44,30 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "bazel.project.detector.is.bazel.project": "true",
+    "git-widget-placeholder": "featureTree",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/venya/projects/foreign_bot",
+    "last_opened_file_path": "C:/Users/venya/projects/foreign_bot/materials",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2025.2.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\venya\projects\foreign_bot\materials" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\venya\projects\foreign_bot\materials" />
+      <recent name="C:\Users\venya\projects\foreign_bot" />
       <recent name="C:\Users\venya\projects\foreign_bot\services" />
     </key>
   </component>
@@ -86,10 +97,38 @@
       <updated>1773662001520</updated>
       <workItem from="1773662003814" duration="135000" />
       <workItem from="1775671586414" duration="1241000" />
+      <workItem from="1776209478417" duration="602000" />
+      <workItem from="1776218431135" duration="1141000" />
+      <workItem from="1776281655888" duration="2077000" />
+      <workItem from="1776283905231" duration="23000" />
+      <workItem from="1776283958999" duration="43000" />
+      <workItem from="1776284016005" duration="8194000" />
+      <workItem from="1776300382367" duration="5762000" />
+      <workItem from="1778156267107" duration="5033000" />
+      <workItem from="1778161392589" duration="1364000" />
+      <workItem from="1778190148658" duration="613000" />
+      <workItem from="1778771588335" duration="595000" />
+      <workItem from="1778785256441" duration="10000" />
+      <workItem from="1779221173755" duration="2934000" />
+      <workItem from="1779373003653" duration="874000" />
+      <workItem from="1780147804593" duration="170000" />
+      <workItem from="1780161447840" duration="2387000" />
+      <workItem from="1780408398693" duration="608000" />
+      <workItem from="1780573232080" duration="11555000" />
+      <workItem from="1780676422894" duration="5854000" />
+      <workItem from="1780706422094" duration="9884000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/front/admin-panel/node_modules/@eslint/plugin-kit/dist/esm/types.d.ts" />
+        <option value="$PROJECT_DIR$/front/admin-panel/node_modules/@eslint/object-schema/dist/esm/types.d.ts" />
+        <option value="$PROJECT_DIR$/front/admin-panel/node_modules/@eslint/config-helpers/dist/esm/types.d.ts" />
+        <option value="$PROJECT_DIR$/front/admin-panel/node_modules/@eslint/config-array/dist/esm/types.d.ts" />
+      </list>
+    </option>
   </component>
 </project>
