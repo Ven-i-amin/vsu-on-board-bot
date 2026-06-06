@@ -3,6 +3,7 @@ package ru.vsu.core.repository.local;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.vsu.core.repository.FileStorageRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;

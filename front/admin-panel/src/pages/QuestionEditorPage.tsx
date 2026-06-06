@@ -3,6 +3,7 @@ import './AdminPage.css'
 import globeIcon from '../assets/fi-rr-globe.svg'
 import arrowLeftIcon from '../assets/fi-rr-angle-left.svg'
 import RichTextEditor from '../widget/RichTextEditor'
+import { FileAttachments } from '../widget/FileAttachments'
 import {
   AVAILABLE_LANGUAGE_CODES,
   AVAILABLE_LANGUAGES,
@@ -10,6 +11,11 @@ import {
   type LocalizedText,
   Question,
 } from '../entities/models'
+import {
+  type QuestionFileDto,
+  fetchQuestionFiles,
+  uploadFile,
+} from '../api/adminApi'
 
 type LocalizedDraft = Record<AvailableLanguageCode, string>
 
@@ -19,7 +25,7 @@ type QuestionEditorPageProps = {
   isSubmitting?: boolean
   errorMessage?: string
   onBack: () => void
-  onSave: (questionId: string, title: LocalizedText, text: LocalizedText) => Promise<void>
+  onSave: (questionId: string, title: LocalizedText, text: LocalizedText, fileHashes: string[]) => Promise<void>
   onDelete: (questionId: string) => Promise<void>
 }
 
@@ -100,6 +106,11 @@ function QuestionEditorPage({
   const [activeLanguage, setActiveLanguage] = useState<AvailableLanguageCode>(langCode)
   const [titleValues, setTitleValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
   const [textValues, setTextValues] = useState<LocalizedDraft>(() => createEmptyLocalizedDraft())
+  const [fileList, setFileList] = useState<QuestionFileDto[]>([])
+  const [originalFileHashes, setOriginalFileHashes] = useState<ReadonlySet<string>>(new Set())
+  const [isFilesLoading, setIsFilesLoading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
 
   useEffect(() => {
     if (!question) {
@@ -109,18 +120,55 @@ function QuestionEditorPage({
     setTitleValues(createLocalizedDraft(question.title))
     setTextValues(createLocalizedDraft(question.text))
     setActiveLanguage(langCode)
+    setFileList([])
+    setOriginalFileHashes(new Set())
+    setUploadError('')
+
+    setIsFilesLoading(true)
+    fetchQuestionFiles(question.questionId)
+      .then((files) => {
+        setFileList(files)
+        setOriginalFileHashes(new Set(files.map((f) => f.fileHash)))
+      })
+      .catch(() => {})
+      .finally(() => setIsFilesLoading(false))
   }, [langCode, question])
 
   const originalTitleValues = useMemo(() => createLocalizedDraft(question?.title), [question])
   const originalTextValues = useMemo(() => createLocalizedDraft(question?.text), [question])
+
+  const isFilesChanged = useMemo(() => {
+    if (isFilesLoading) return false
+    if (fileList.length !== originalFileHashes.size) return true
+    return fileList.some((f) => !originalFileHashes.has(f.fileHash))
+  }, [fileList, originalFileHashes, isFilesLoading])
+
   const isUnchanged =
     areLocalizedDraftsEqual(titleValues, originalTitleValues, (value) => value.trim())
     && areLocalizedDraftsEqual(textValues, originalTextValues, (value) => normalizeRichTextForRequest(value))
+    && !isFilesChanged
   const isSaveDisabled =
     !question || isSubmitting || !titleValues.ru.trim() || isRichTextEmpty(textValues[activeLanguage]) || isUnchanged
 
   const titleValue = titleValues[activeLanguage]
   const textValue = textValues[activeLanguage] || '<p></p>'
+
+  async function handleFileSelect(file: File) {
+    setUploadError('')
+    setIsUploading(true)
+    try {
+      const uploaded = await uploadFile(file)
+      setFileList((current) => [...current, uploaded])
+    } catch {
+      setUploadError('Не удалось загрузить файл')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  function removeFile(fileHash: string) {
+    setFileList((current) => current.filter((f) => f.fileHash !== fileHash))
+  }
 
   if (!question) {
     return (
@@ -180,6 +228,20 @@ function QuestionEditorPage({
               />
             </div>
 
+            <div className="modal-form__field">
+              <span className="modal-form__label">
+                {isFilesLoading ? 'Загрузка файлов...' : 'Прикреплённые файлы'}
+              </span>
+              <FileAttachments
+                files={fileList}
+                isUploading={isUploading}
+                isDisabled={isSubmitting || isFilesLoading}
+                uploadError={uploadError}
+                onFileSelect={handleFileSelect}
+                onRemove={removeFile}
+              />
+            </div>
+
             <div className="question-editor__footer">
               <button
                 className="question-editor__delete"
@@ -200,6 +262,7 @@ function QuestionEditorPage({
                       question.questionId,
                       buildTitlePayload(titleValues),
                       buildTextPayload(textValues),
+                      fileList.map((f) => f.fileHash),
                     )
                   }
                 >

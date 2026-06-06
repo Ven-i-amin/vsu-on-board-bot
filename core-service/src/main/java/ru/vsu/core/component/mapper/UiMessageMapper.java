@@ -9,8 +9,6 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UiMessageMapper {
-    UiMessageMapper INSTANCE = Mappers.getMapper(UiMessageMapper.class);
-
     UiMessageDto toDto(UiMessage uiMessage);
 
     UiMessage toEntity(UiMessageDto uiMessageDto);

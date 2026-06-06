@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.contract.model.response.LanguageResponseDto;
 import ru.vsu.core.component.mapper.ResponseMapper;
-import ru.vsu.core.service.LanguageService;
+import ru.vsu.core.service.business.LanguageService;
 
 import java.util.List;
 

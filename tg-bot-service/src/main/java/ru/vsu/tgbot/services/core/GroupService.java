@@ -1,14 +1,19 @@
 package ru.vsu.tgbot.services.core;
 
 import ru.vsu.tgbot.model.dto.GroupDto;
+import ru.vsu.tgbot.model.dto.QuestionDto;
 
 import java.util.List;
 
 public interface GroupService {
-    GroupDto getQuestionGroup(String groupName, String language);
-    GroupDto getGroupWithDepth(String groupName, Integer depth, String language);
-    GroupDto getGroupByNameWithDepth(String groupName, Integer depth, String language);
-    List<GroupDto> getInnerGroups(String groupName, String language);
-    List<GroupDto> getInnerGroupsForEachGroup(List<String> groupNames, String language);
-    GroupDto getStartGroup();
+    GroupDto getRootGroup();
+    GroupDto getGroup(String groupName);
+    List<GroupDto> getGroupChildren(String groupName);
+    List<QuestionDto> getGroupQuestions(String groupName);
+
+    /** Convenience: fetch group + direct children + questions in one call. */
+    GroupDto getGroupWithContent(String groupName);
+
+    /** Convenience: fetch root group + its direct children + questions. */
+    GroupDto getRootGroupWithContent();
 }

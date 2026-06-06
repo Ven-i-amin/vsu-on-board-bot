@@ -7,7 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.core.component.mapper.ResponseMapper;
 import ru.vsu.core.model.dto.UiMessageDto;
-import ru.vsu.core.service.UiMessageService;
+import ru.vsu.core.service.business.UiMessageService;
 
 import java.util.List;
 

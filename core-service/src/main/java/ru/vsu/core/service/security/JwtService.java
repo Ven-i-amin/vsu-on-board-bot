@@ -1,4 +1,4 @@
-package ru.vsu.core.service;
+package ru.vsu.core.service.security;
 
 import java.util.Map;
 

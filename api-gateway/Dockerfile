@@ -9,7 +9,7 @@ WORKDIR /workspace/api-gateway
 
 RUN gradle --no-daemon bootJar
 
-FROM eclipse-temurin:21-jre
+FROM ibm-semeru-runtimes:open-21-jre
 
 WORKDIR /foreign-student/api-gateway
 

@@ -1,0 +1,67 @@
+.qt-body {
+  line-height: 1.65;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  color: #1a1a1a;
+}
+
+.qt-body b { font-weight: 700; }
+.qt-body i { font-style: italic; }
+.qt-body s { text-decoration: line-through; }
+.qt-body u { text-decoration: underline; }
+
+.qt-body code {
+  font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+  font-size: 0.88em;
+  background: #e8eaed;
+  color: #c7254e;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+.qt-pre {
+  position: relative;
+  margin: 1rem 0;
+  padding: 1rem 1rem 1rem 1rem;
+  background: #1e1e2e;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.qt-pre code {
+  display: block;
+  font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #cdd6f4;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  white-space: pre;
+}
+
+.qt-lang {
+  display: block;
+  font-family: system-ui, sans-serif;
+  font-size: 0.75rem;
+  color: #6c7086;
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.qt-spoiler {
+  background: #1a1a1a;
+  color: transparent;
+  border-radius: 4px;
+  padding: 0 2px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  user-select: none;
+}
+
+.qt-spoiler:hover,
+.qt-spoiler.qt-spoiler_revealed {
+  background: #e8eaed;
+  color: #1a1a1a;
+}

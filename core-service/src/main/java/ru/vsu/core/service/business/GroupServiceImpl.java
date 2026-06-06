@@ -1,4 +1,4 @@
-package ru.vsu.core.service.impl;
+package ru.vsu.core.service.business;
 
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -9,9 +9,7 @@ import ru.vsu.core.model.dto.GroupDto;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.request.GroupRequest;
 import ru.vsu.core.model.request.GroupTitleRequest;
-import ru.vsu.core.repository.GroupRepository;
-import ru.vsu.core.service.GroupService;
-import ru.vsu.core.service.QuestionService;
+import ru.vsu.core.repository.mongo.GroupRepository;
 import ru.vsu.core.util.LocalizationUtil;
 import ru.vsu.core.util.TransliterationUtil;
 

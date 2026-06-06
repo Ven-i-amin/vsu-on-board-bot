@@ -4,22 +4,32 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.vsu.core.model.dto.QuestionDto;
+import ru.vsu.core.model.dto.QuestionFileDto;
 import ru.vsu.core.model.request.QuestionCreateRequest;
 import ru.vsu.core.model.request.QuestionUpdateRequest;
-import ru.vsu.core.service.QuestionService;
+import ru.vsu.core.service.business.QuestionService;
+import ru.vsu.core.service.storage.QuestionFileService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/question")
 @AllArgsConstructor
 public class QuestionApiController {
     private QuestionService questionService;
+    private QuestionFileService questionFileService;
+
+    @GetMapping("/group/{groupName}")
+    public List<QuestionDto> getQuestionsByGroup(@PathVariable String groupName) {
+        return questionService.findByParentGroupName(groupName);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveQuestion(
+    public QuestionDto saveQuestion(
             @RequestBody QuestionCreateRequest question
     ){
-        questionService.save(question);
+        return questionService.save(question);
     }
 
     @PatchMapping("/{questionId}")
@@ -35,5 +45,19 @@ public class QuestionApiController {
             @PathVariable String questionId
     ) {
         questionService.deleteById(questionId);
+    }
+
+    @GetMapping("/{questionId}/files")
+    public List<QuestionFileDto> getQuestionFiles(@PathVariable String questionId) {
+        List<String> fileHashes = questionService.findFileHashesByQuestionId(questionId);
+        return questionFileService.getAll(fileHashes);
+    }
+
+    @PutMapping("/{questionId}/files")
+    public void updateQuestionFiles(
+            @PathVariable String questionId,
+            @RequestBody List<String> fileHashes
+    ) {
+        questionService.updateFileList(questionId, fileHashes);
     }
 }

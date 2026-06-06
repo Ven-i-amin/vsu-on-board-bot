@@ -1,4 +1,4 @@
-package ru.vsu.core.service;
+package ru.vsu.core.service.business;
 
 import ru.vsu.core.model.dto.LanguageDto;
 

@@ -6,7 +6,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.vsu.core.model.dto.LanguageDto;
-import ru.vsu.core.service.LanguageService;
+import ru.vsu.core.service.business.LanguageService;
 
 import java.util.List;
 import java.util.Map;

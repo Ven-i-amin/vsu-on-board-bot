@@ -7,7 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.vsu.contract.model.response.GroupResponseDto;
 import ru.vsu.core.component.mapper.ResponseMapper;
 import ru.vsu.core.model.dto.GroupDto;
-import ru.vsu.core.service.GroupService;
+import ru.vsu.core.service.business.GroupService;
 
 import java.util.List;
 
@@ -15,64 +15,42 @@ import java.util.List;
 @RequestMapping("/group")
 @AllArgsConstructor
 public class GroupController {
-    private static final int START_GROUP_DEPTH = 32;
-
     private final GroupService groupService;
     private final ResponseMapper responseMapper;
 
-    @GetMapping("/{groupName}")
-    public GroupResponseDto getGroup(
-            @PathVariable String groupName,
-            @RequestParam(value = "depth", defaultValue = "0") Integer depth
-    ) {
-        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(groupName, depth));
-        if (group == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return group;
+    @GetMapping
+    public List<GroupResponseDto> getAllGroups() {
+        return responseMapper.toResponseList(groupService.findAll());
     }
 
-    @GetMapping("/{groupName}/inner")
-    public List<GroupResponseDto> getInnerGroup(@PathVariable String groupName) {
+    @GetMapping("/{groupName}")
+    public GroupResponseDto getGroup(@PathVariable String groupName) {
         GroupDto group = groupService.findByName(groupName);
         if (group == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-
-        return groupService.findByParentName(groupName).stream()
-                .map(responseMapper::toShallowResponse)
-                .toList();
+        return responseMapper.toResponse(group);
     }
 
-    @GetMapping("/start")
-    public GroupResponseDto getStartGroup() {
-        GroupDto rootGroup = groupService.findRoot();
-        if (rootGroup == null) {
+    @GetMapping("/root")
+    public GroupResponseDto getRootGroup() {
+        GroupDto root = groupService.findRoot();
+        if (root == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-
-        GroupResponseDto group = responseMapper.toResponse(groupService.findRootGroup(START_GROUP_DEPTH));
-        if (group == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return group;
+        return responseMapper.toResponse(root);
     }
 
-    @PostMapping("/list")
-    public List<GroupResponseDto> getInnerGroupsForEachGroup(@RequestBody List<String> groupNames) {
-        return groupService.findByParentNames(groupNames).stream()
-                .map(responseMapper::toShallowResponse)
+    @GetMapping("/{groupName}/children")
+    public List<GroupResponseDto> getGroupChildren(@PathVariable String groupName) {
+        return groupService.findDirectChildren(groupName).stream()
+                .map(responseMapper::toResponse)
                 .toList();
     }
 
     @PostMapping("/start")
     @ResponseStatus(HttpStatus.CREATED)
     public GroupResponseDto createStartGroup() {
-        GroupDto rootGroup = groupService.createRootIfMissing();
-        GroupResponseDto group = responseMapper.toResponse(groupService.findTreeByName(rootGroup.name(), START_GROUP_DEPTH));
-        if (group == null) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return group;
+        return responseMapper.toResponse(groupService.createRootIfMissing());
     }
 }

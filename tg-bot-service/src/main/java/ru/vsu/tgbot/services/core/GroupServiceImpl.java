@@ -6,9 +6,12 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import ru.vsu.contract.model.response.GroupResponseDto;
+import ru.vsu.contract.model.response.QuestionResponseDto;
 import ru.vsu.tgbot.components.mapper.CoreResponseMapper;
 import ru.vsu.tgbot.model.dto.GroupDto;
+import ru.vsu.tgbot.model.dto.QuestionDto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,94 +30,92 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public GroupDto getQuestionGroup(String groupName, String language) {
-        return getGroupWithDepth(groupName, 0, language);
-    }
-
-    @Override
-    public GroupDto getGroupWithDepth(String groupName, Integer depth, String language) {
-        return getGroupByNameWithDepth(groupName, depth, language);
-    }
-
-    @Override
-    public GroupDto getGroupByNameWithDepth(String groupName, Integer depth, String language) {
+    public GroupDto getRootGroup() {
         try {
             GroupDto group = coreClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/group/{groupName}")
-                            .queryParam("depth", depth)
-                            .build(groupName)
-                    )
+                    .uri("/group/root")
+                    .retrieve()
+                    .bodyToMono(GroupResponseDto.class)
+                    .map(coreResponseMapper::toGroupDto)
+                    .block();
+            return group == null ? placeholderGroup("root") : group;
+        } catch (RuntimeException ex) {
+            log.warn("Failed to fetch root group from core", ex);
+            return placeholderGroup("root");
+        }
+    }
+
+    @Override
+    public GroupDto getGroup(String groupName) {
+        try {
+            GroupDto group = coreClient.get()
+                    .uri("/group/{groupName}", groupName)
                     .retrieve()
                     .bodyToMono(GroupResponseDto.class)
                     .map(coreResponseMapper::toGroupDto)
                     .block();
             return group == null ? placeholderGroup(groupName) : group;
         } catch (RuntimeException ex) {
-            log.warn("Failed to fetch group by name {} from core", groupName, ex);
+            log.warn("Failed to fetch group '{}' from core", groupName, ex);
             return placeholderGroup(groupName);
         }
     }
 
     @Override
-    public List<GroupDto> getInnerGroups(String groupName, String language) {
+    public List<GroupDto> getGroupChildren(String groupName) {
         try {
             List<GroupDto> groups = coreClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/group/{groupName}/inner")
-                            .build(groupName)
-                    )
+                    .uri("/group/{groupName}/children", groupName)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
                     .map(coreResponseMapper::toGroupDtoList)
                     .block();
             return groups == null ? List.of() : groups;
         } catch (RuntimeException ex) {
-            log.warn("Failed to fetch inner groups for {}", groupName, ex);
+            log.warn("Failed to fetch children of group '{}' from core", groupName, ex);
             return List.of();
         }
     }
 
     @Override
-    public List<GroupDto> getInnerGroupsForEachGroup(List<String> groupNames, String language) {
+    public List<QuestionDto> getGroupQuestions(String groupName) {
         try {
-            List<GroupDto> groups = coreClient.post()
-                    .uri("/group/list")
-                    .bodyValue(groupNames)
+            List<QuestionDto> questions = coreClient.get()
+                    .uri("/question/group/{groupName}", groupName)
                     .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<List<GroupResponseDto>>() {})
-                    .map(coreResponseMapper::toGroupDtoList)
+                    .bodyToMono(new ParameterizedTypeReference<List<QuestionResponseDto>>() {})
+                    .map(coreResponseMapper::toQuestionDtoList)
                     .block();
-            return groups == null ? List.of() : groups;
+            return questions == null ? List.of() : questions;
         } catch (RuntimeException ex) {
-            log.warn("Failed to fetch nested groups from core", ex);
+            log.warn("Failed to fetch questions for group '{}' from core", groupName, ex);
             return List.of();
         }
     }
 
     @Override
-    public GroupDto getStartGroup() {
-        try {
-            GroupDto group = coreClient.get()
-                    .uri("/group/start")
-                    .retrieve()
-                    .bodyToMono(GroupResponseDto.class)
-                    .map(coreResponseMapper::toGroupDto)
-                    .block();
-            return group == null ? placeholderGroup("start") : group;
-        } catch (RuntimeException ex) {
-            log.warn("Failed to fetch start group from core", ex);
-            return placeholderGroup("start");
-        }
+    public GroupDto getGroupWithContent(String groupName) {
+        GroupDto group = getGroup(groupName);
+        group.setInnerGroups(new ArrayList<>(getGroupChildren(groupName)));
+        group.setQuestions(new ArrayList<>(getGroupQuestions(groupName)));
+        return group;
+    }
+
+    @Override
+    public GroupDto getRootGroupWithContent() {
+        GroupDto root = getRootGroup();
+        root.setInnerGroups(new ArrayList<>(getGroupChildren(root.getName())));
+        root.setQuestions(new ArrayList<>(getGroupQuestions(root.getName())));
+        return root;
     }
 
     private GroupDto placeholderGroup(String groupName) {
-        String langCode = "ru";
         return GroupDto.builder()
                 .name(groupName)
-                .title(Map.of(langCode, "Сервис временно недоступен"))
-                .innerGroups(new java.util.ArrayList<>())
-                .questions(new java.util.ArrayList<>())
+                .title(Map.of("ru", "Сервис временно недоступен"))
+                .parents(new ArrayList<>())
+                .innerGroups(new ArrayList<>())
+                .questions(new ArrayList<>())
                 .build();
     }
 }

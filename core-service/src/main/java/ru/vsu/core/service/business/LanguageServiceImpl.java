@@ -1,4 +1,4 @@
-package ru.vsu.core.service.impl;
+package ru.vsu.core.service.business;
 
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import ru.vsu.core.component.mapper.LanguageMapper;
 import ru.vsu.core.model.dto.LanguageDto;
-import ru.vsu.core.repository.LanguageRepository;
-import ru.vsu.core.service.LanguageService;
+import ru.vsu.core.repository.mongo.LanguageRepository;
 import ru.vsu.core.util.LocalizationUtil;
 
 import java.util.List;

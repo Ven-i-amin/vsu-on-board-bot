@@ -3,10 +3,11 @@ package ru.vsu.core.controller.bot;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.vsu.contract.model.response.UserResponseDto;
 import ru.vsu.core.component.mapper.ResponseMapper;
 import ru.vsu.core.model.dto.UserDto;
-import ru.vsu.core.service.UserService;
+import ru.vsu.core.service.user.UserService;
 
 @RestController
 @RequestMapping("/user")
@@ -17,7 +18,11 @@ public class UserController {
 
     @GetMapping("/{chatId}")
     public UserResponseDto getUser(@PathVariable Long chatId) {
-        return responseMapper.toResponse(userService.findByChatId(chatId));
+        UserDto user = userService.findByChatId(chatId);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return responseMapper.toResponse(user);
     }
 
     @PostMapping

@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.vsu.core.model.entity.Admin;
-import ru.vsu.core.repository.AdminRepository;
+import ru.vsu.core.repository.mongo.AdminRepository;
 
 @Component
 @Order(5)
