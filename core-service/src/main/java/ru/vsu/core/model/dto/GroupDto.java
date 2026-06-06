@@ -10,6 +10,6 @@ public record GroupDto(
         String groupId,
         String name,
         Map<String, String> title,
-        String parentName
+        List<String> parents
 ) {
 }

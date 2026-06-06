@@ -11,8 +11,6 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface LanguageMapper {
-    LanguageMapper INSTANCE = Mappers.getMapper(LanguageMapper.class);
-
     LanguageDto toDto(Language language);
 
     @Mapping(target = "id", ignore = true)

@@ -11,18 +11,17 @@ import { Group as GroupModel } from '../entities/models'
 
 export type BreadcrumbItem = {
   label: string
-  path: string[]
+  groupName: string | null
 }
 
 type AdminPageProps = {
   currentGroup: GroupModel | null
   langCode?: string
-  currentFolderPath: string[]
   breadcrumbs: BreadcrumbItem[]
   onGoHome: () => void
-  onNavigateToPath: (path: string[]) => void
+  onNavigateToGroup: (groupName: string | null) => void
   onOpenGroup: (groupName: string) => void
-  onOpenQuestion: (questionName: string, groupPath: string[]) => void
+  onOpenQuestion: (questionName: string, groupName: string) => void
   onGoBack: () => void
   onEditGroup: (groupName: string) => void
   onCreateGroup: (groupName: string) => void
@@ -30,8 +29,6 @@ type AdminPageProps = {
   onDeleteGroup: (groupName: string) => void
   onDeleteQuestion: (questionId: string) => void
 }
-
-const ROOT_LABEL = 'Главное меню'
 
 function localizeTitle(
   value: Record<string, string> | undefined,
@@ -44,10 +41,9 @@ function localizeTitle(
 function AdminPage({
   currentGroup,
   langCode = 'ru',
-  currentFolderPath,
   breadcrumbs,
   onGoHome,
-  onNavigateToPath,
+  onNavigateToGroup,
   onOpenGroup,
   onOpenQuestion,
   onGoBack,
@@ -65,7 +61,7 @@ function AdminPage({
       : breadcrumbs
   const currentFolderTitle = currentGroup
     ? localizeTitle(currentGroup.title, langCode, currentGroup.name)
-    : ROOT_LABEL
+    : 'Главное меню'
 
   return (
     <main className="page-content">
@@ -77,7 +73,7 @@ function AdminPage({
                 className="browser__back"
                 type="button"
                 onClick={onGoBack}
-                aria-label={currentFolderPath.length === 0 ? 'Вернуться в меню перевода' : 'Вернуться на уровень выше'}
+                aria-label="Вернуться"
               >
                 <img src={arrowLeftIcon} alt="" aria-hidden="true" />
               </button>
@@ -99,17 +95,17 @@ function AdminPage({
 
           <div className="browser__path">
             {visibleBreadcrumbs.map((item, index) => (
-              <div key={`${item.path.join('/')}-${index}`} className="browser__crumb-wrap">
+              <div key={`${item.groupName}-${index}`} className="browser__crumb-wrap">
                 {index > 0 && <span className="browser__crumb-separator">/</span>}
                 <button
                   className="browser__crumb"
                   type="button"
                   onClick={() => {
                     setIsHiddenPathOpen(false)
-                    if (item.path.length === 0) {
+                    if (item.groupName === null) {
                       onGoHome()
                     } else {
-                      onNavigateToPath(item.path)
+                      onNavigateToGroup(item.groupName)
                     }
                   }}
                 >
@@ -124,7 +120,7 @@ function AdminPage({
                 <button
                   className="browser__crumb browser__crumb_ellipsis"
                   type="button"
-                  onClick={() => setIsHiddenPathOpen((current) => !current)}
+                  onClick={() => setIsHiddenPathOpen((s) => !s)}
                 >
                   ...
                 </button>
@@ -133,12 +129,12 @@ function AdminPage({
                   <div className="browser__ellipsis-menu">
                     {hiddenBreadcrumbs.map((item) => (
                       <button
-                        key={item.path.join('/')}
+                        key={item.groupName}
                         className="browser__ellipsis-item"
                         type="button"
                         onClick={() => {
                           setIsHiddenPathOpen(false)
-                          onNavigateToPath(item.path)
+                          onNavigateToGroup(item.groupName)
                         }}
                       >
                         {item.label}
@@ -233,11 +229,11 @@ function AdminPage({
                 className="browser__item"
                 role="button"
                 tabIndex={0}
-                onClick={() => onOpenQuestion(question.name, currentFolderPath)}
+                onClick={() => onOpenQuestion(question.name, currentGroup.name)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
-                    onOpenQuestion(question.name, currentFolderPath)
+                    onOpenQuestion(question.name, currentGroup.name)
                   }
                 }}
               >
@@ -255,7 +251,7 @@ function AdminPage({
                     aria-label="Редактировать вопрос"
                     onClick={(event) => {
                       event.stopPropagation()
-                      onOpenQuestion(question.name, currentFolderPath)
+                      onOpenQuestion(question.name, currentGroup.name)
                     }}
                   >
                     <img src={pencilIcon} alt="" aria-hidden="true" />

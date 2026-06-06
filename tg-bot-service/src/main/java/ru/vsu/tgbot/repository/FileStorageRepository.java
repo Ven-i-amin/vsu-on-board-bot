@@ -1,7 +1,5 @@
-package ru.vsu.core.repository;
+package ru.vsu.tgbot.repository;
 
 public interface FileStorageRepository {
-    String save(String fileHash, byte[] data);
     byte[] load(String fileHash);
-    void delete(String fileHash);
 }

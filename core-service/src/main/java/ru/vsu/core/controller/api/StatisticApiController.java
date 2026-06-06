@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.core.model.response.LanguageCountResponse;
 import ru.vsu.core.model.response.TopQuestionResponse;
-import ru.vsu.core.service.QuestionService;
-import ru.vsu.core.service.UserService;
+import ru.vsu.core.service.business.QuestionService;
+import ru.vsu.core.service.user.UserService;
 
 import java.util.List;
 

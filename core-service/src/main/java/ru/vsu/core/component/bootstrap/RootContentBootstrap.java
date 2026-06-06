@@ -9,10 +9,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.vsu.core.model.dto.GroupDto;
 import ru.vsu.core.model.dto.QuestionDto;
-import ru.vsu.core.service.GroupService;
-import ru.vsu.core.service.QuestionService;
+import ru.vsu.core.service.business.GroupService;
+import ru.vsu.core.service.business.QuestionService;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -57,14 +59,16 @@ public class RootContentBootstrap implements ApplicationRunner {
                 }
 
                 String parentName = resolveParentName(startGroup.parentName(), rootGroup.name());
-                if (parentName != null && groupService.findByName(parentName) == null) {
+                GroupDto parent = parentName != null ? groupService.findByName(parentName) : null;
+                if (parentName != null && parent == null) {
                     continue;
                 }
 
+                List<String> parents = buildParents(parent);
                 groupService.save(GroupDto.builder()
                         .name(startGroup.name())
                         .title(startGroup.title())
-                        .parentName(parentName)
+                        .parents(parents)
                         .build());
                 iterator.remove();
                 progress = true;
@@ -100,7 +104,17 @@ public class RootContentBootstrap implements ApplicationRunner {
         if (startValueResourceLoader.isRootParentAlias(parentName)) {
             return rootGroupName;
         }
-
         return parentName;
+    }
+
+    private List<String> buildParents(GroupDto parent) {
+        if (parent == null) {
+            return List.of();
+        }
+        List<String> parents = new ArrayList<>(
+                parent.parents() == null ? List.of() : parent.parents()
+        );
+        parents.add(parent.name());
+        return parents;
     }
 }

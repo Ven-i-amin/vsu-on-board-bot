@@ -16,9 +16,15 @@ import java.util.Map;
 public class GroupDto {
     private String name;
     private Map<String, String> title;
-    private String parentName;
+    @Builder.Default
+    private List<String> parents = new ArrayList<>();
     @Builder.Default
     private List<GroupDto> innerGroups = new ArrayList<>();
     @Builder.Default
     private List<QuestionDto> questions = new ArrayList<>();
+
+    public String getParentName() {
+        if (parents == null || parents.isEmpty()) return null;
+        return parents.getLast();
+    }
 }

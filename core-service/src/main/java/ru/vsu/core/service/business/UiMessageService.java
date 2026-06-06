@@ -1,6 +1,5 @@
-package ru.vsu.core.service;
+package ru.vsu.core.service.business;
 
-import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.core.model.dto.UiMessageDto;
 import ru.vsu.core.model.request.UiMessageUpdateRequest;
 

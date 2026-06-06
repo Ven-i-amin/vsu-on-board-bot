@@ -5,7 +5,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import ru.vsu.core.service.GroupService;
+import ru.vsu.core.service.business.GroupService;
 
 @Component
 @Order(20)

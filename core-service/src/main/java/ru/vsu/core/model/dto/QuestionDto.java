@@ -3,6 +3,8 @@ package ru.vsu.core.model.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -13,4 +15,6 @@ public class QuestionDto {
     private String parent;
     private Map<String, String> title;
     private Map<String, String> text;
+    @Builder.Default
+    private List<String> fileHashes = new ArrayList<>();
 }

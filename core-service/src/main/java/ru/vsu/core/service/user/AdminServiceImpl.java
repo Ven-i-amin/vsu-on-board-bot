@@ -6,7 +6,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.vsu.core.model.entity.Admin;
-import ru.vsu.core.repository.AdminRepository;
+import ru.vsu.core.repository.mongo.AdminRepository;
 import ru.vsu.core.service.security.JwtService;
 
 @Service

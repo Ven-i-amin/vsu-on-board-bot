@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.server.ResponseStatusException;
-import ru.vsu.core.service.JwtService;
+import ru.vsu.core.service.security.JwtService;
 
 @Component
 @AllArgsConstructor

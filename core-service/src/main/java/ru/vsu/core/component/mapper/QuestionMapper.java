@@ -4,9 +4,9 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import ru.vsu.core.model.dto.GroupDto;
 import ru.vsu.core.model.dto.QuestionDto;
 import ru.vsu.core.model.dto.QuestionLocalizedDto;
-import ru.vsu.core.model.dto.GroupTreeDto;
 import ru.vsu.core.model.entity.Group;
 import ru.vsu.core.model.entity.Question;
 import ru.vsu.core.model.request.QuestionCreateRequest;
@@ -45,7 +45,7 @@ public interface QuestionMapper {
         return QuestionLocalizedDto.builder()
                 .questionId(question.getQuestionId())
                 .name(question.getName())
-                .parent(toShallowLocalizedGroup(groupsByName.get(question.getGroupName()), languageCode))
+                .parent(toLocalizedGroup(groupsByName.get(question.getGroupName()), languageCode))
                 .title(localize(question.getTitle(), languageCode))
                 .text(localize(question.getText(), languageCode))
                 .build();
@@ -61,14 +61,16 @@ public interface QuestionMapper {
                 .toList();
     }
 
-    @Named("toShallowLocalizedGroup")
-    default GroupTreeDto toShallowLocalizedGroup(Group group, @Context String languageCode) {
+    @Named("toLocalizedGroup")
+    default GroupDto toLocalizedGroup(Group group, @Context String languageCode) {
         if (group == null) {
             return null;
         }
-        return GroupTreeDto.builder()
+        return GroupDto.builder()
                 .groupId(group.getGroupId())
+                .name(group.getName())
                 .title(group.getTitle())
+                .parents(group.getParents())
                 .build();
     }
 

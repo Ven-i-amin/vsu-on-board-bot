@@ -6,8 +6,6 @@ import java.util.Map;
 public record GroupResponseDto(
         String name,
         Map<String, String> title,
-        String parentName,
-        List<GroupResponseDto> innerGroups,
-        List<QuestionResponseDto> questions
+        List<String> parents
 ) {
 }

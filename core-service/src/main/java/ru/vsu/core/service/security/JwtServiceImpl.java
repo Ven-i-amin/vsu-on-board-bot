@@ -1,4 +1,4 @@
-package ru.vsu.core.service.impl;
+package ru.vsu.core.service.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -6,7 +6,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.vsu.core.service.JwtService;
 
 import java.math.BigInteger;
 import java.security.KeyFactory;

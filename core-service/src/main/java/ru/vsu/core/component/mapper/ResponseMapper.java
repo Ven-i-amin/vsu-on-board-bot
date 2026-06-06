@@ -1,7 +1,6 @@
 package ru.vsu.core.component.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.vsu.contract.model.response.GroupResponseDto;
 import ru.vsu.contract.model.response.LanguageResponseDto;
@@ -13,18 +12,9 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface ResponseMapper {
-    ResponseMapper INSTANCE = Mappers.getMapper(ResponseMapper.class);
+    GroupResponseDto toResponse(GroupDto group);
 
-    @Mapping(target = "innerGroups", expression = "java( toResponse(group.innerGroups()) )")
-    @Mapping(target = "questions", expression = "java(group.questions() == null ? java.util.List.of() : group.questions().stream().map(this::toResponse).toList())")
-    GroupResponseDto toResponse(GroupTreeDto group);
-
-    List<GroupResponseDto> toResponse(List<GroupTreeDto> groups);
-
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "innerGroups", ignore = true)
-    @Mapping(target = "questions", ignore = true)
-    GroupResponseDto toShallowResponse(GroupDto group);
+    List<GroupResponseDto> toResponseList(List<GroupDto> groups);
 
     ru.vsu.contract.model.response.QuestionResponseDto toResponse(QuestionDto question);
 

@@ -7,7 +7,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.vsu.core.model.dto.UiMessageDto;
-import ru.vsu.core.service.UiMessageService;
+import ru.vsu.core.service.business.UiMessageService;
 
 import java.util.List;
 import java.util.Map;

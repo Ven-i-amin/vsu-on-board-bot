@@ -1,14 +1,12 @@
-package ru.vsu.core.service.impl;
+package ru.vsu.core.service.business;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.vsu.contract.model.response.UiMessageResponseDto;
 import ru.vsu.core.component.mapper.UiMessageMapper;
 import ru.vsu.core.model.dto.UiMessageDto;
 import ru.vsu.core.model.entity.UiMessage;
 import ru.vsu.core.model.request.UiMessageUpdateRequest;
-import ru.vsu.core.repository.UiMessageRepository;
-import ru.vsu.core.service.UiMessageService;
+import ru.vsu.core.repository.mongo.UiMessageRepository;
 import ru.vsu.core.util.LocalizationUtil;
 
 import java.util.List;

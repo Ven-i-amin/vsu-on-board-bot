@@ -1,15 +1,13 @@
 import { Question, UiMessage, type LocalizedText } from '../entities/models'
 
-type GroupResponseDto = {
+export type GroupDto = {
+  groupId?: string
   name: string
   title: LocalizedText
-  parentName: string
-  innerGroups?: GroupResponseDto[]
-  childrenNames?: string[]
-  questions?: QuestionResponseDto[]
+  parents: string[]
 }
 
-type QuestionResponseDto = {
+export type QuestionDto = {
   questionId: string
   name: string
   parent: string
@@ -18,25 +16,9 @@ type QuestionResponseDto = {
 }
 
 type UiMessageResponseDto = {
+  id?: string
   name: string
-  description: LocalizedText
   text: LocalizedText
-}
-
-type GroupDto = {
-  groupId?: string
-  name: string
-  title: LocalizedText
-  parentName: string
-}
-
-export type GroupNode = {
-  name: string
-  title: LocalizedText
-  parentName: string
-  childrenNames: string[]
-  questions: Question[]
-  isLoaded: boolean
 }
 
 type LanguageCountResponse = {
@@ -57,6 +39,16 @@ type AuthTokenResponse = {
   token: string
 }
 
+export type GroupNode = {
+  name: string
+  title: LocalizedText
+  parentName: string
+  parents: string[]
+  childrenNames: string[]
+  questions: Question[]
+  isLoaded: boolean
+}
+
 export class ApiError extends Error {
   status: number
 
@@ -68,7 +60,7 @@ export class ApiError extends Error {
 }
 
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '')
-const API_BASE = configuredApiBaseUrl ? `${configuredApiBaseUrl}/api` : '/api'
+export const API_BASE = configuredApiBaseUrl ? `${configuredApiBaseUrl}/api` : '/api'
 export const AUTH_TOKEN_STORAGE_KEY = 'admin-panel-auth-token'
 
 const DEFAULT_UI_MESSAGE_DESCRIPTIONS: Record<string, LocalizedText> = {
@@ -159,7 +151,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getAuthToken()
   const isAuthRequest = path.startsWith('/auth/')
 
-  if (init?.body && !headers.has('Content-Type')) {
+  if (init?.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -229,7 +221,20 @@ export function isUnauthorizedError(error: unknown) {
       ))
 }
 
-function mapQuestion(dto: QuestionResponseDto): Question {
+export function mapGroupDto(dto: GroupDto): GroupNode {
+  const parents = dto.parents ?? []
+  return {
+    name: dto.name,
+    title: dto.title ?? {},
+    parentName: parents.length > 0 ? parents[parents.length - 1] : '',
+    parents,
+    childrenNames: [],
+    questions: [],
+    isLoaded: false,
+  }
+}
+
+export function mapQuestion(dto: QuestionDto): Question {
   return new Question({
     questionId: dto.questionId,
     name: dto.name,
@@ -239,44 +244,15 @@ function mapQuestion(dto: QuestionResponseDto): Question {
   })
 }
 
-function mapGroup(dto: GroupResponseDto): GroupNode {
-  const nestedChildren = dto.innerGroups?.map((group) => group.name) ?? []
-
-  return {
-    name: dto.name,
-    title: dto.title ?? {},
-    parentName: dto.parentName ?? '',
-    childrenNames: dto.childrenNames ?? nestedChildren,
-    questions: (dto.questions ?? []).map(mapQuestion),
-    isLoaded: true,
-  }
-}
-
-function mapUiMessage(dto: UiMessageResponseDto): UiMessage {
+export function mapUiMessage(dto: UiMessageResponseDto): UiMessage {
   return new UiMessage({
     name: dto.name,
-    description: dto.description ?? DEFAULT_UI_MESSAGE_DESCRIPTIONS[dto.name] ?? {},
+    description: DEFAULT_UI_MESSAGE_DESCRIPTIONS[dto.name] ?? {},
     text: dto.text ?? {},
   })
 }
 
-function dedupeUiMessages(messages: UiMessageResponseDto[]) {
-  const uniqueByName = new Map<string, UiMessageResponseDto>()
-
-  for (const message of messages) {
-    uniqueByName.set(message.name, message)
-  }
-
-  return Array.from(uniqueByName.values())
-}
-
-export async function fetchAdminData() {
-  return {
-    groups: [],
-    uiMessages: dedupeUiMessages(await request<UiMessageResponseDto[]>('/ui-message')).map(mapUiMessage),
-  }
-}
-
+// Auth
 export function loginAdmin(email: string, password: string) {
   return request<AuthTokenResponse>('/auth/login', {
     method: 'POST',
@@ -291,17 +267,24 @@ export function registerAdmin(email: string, password: string) {
   })
 }
 
-export function fetchStartGroup() {
-  return request<GroupResponseDto>('/group/start').then(mapGroup)
+// Groups
+export function fetchRootGroup(): Promise<GroupNode> {
+  return request<GroupDto>('/group/root').then(mapGroupDto)
 }
 
-export function fetchGroup(groupName: string) {
-  return request<GroupResponseDto>(`/group/${encodeURIComponent(groupName)}`).then(mapGroup)
+export function fetchGroupByName(groupName: string): Promise<GroupNode> {
+  return request<GroupDto>(`/group/${encodeURIComponent(groupName)}`).then(mapGroupDto)
 }
 
-export function fetchInnerGroups(groupName: string) {
-  return request<GroupDto[]>(`/group/${encodeURIComponent(groupName)}/inner`).then((groups) =>
+export function fetchGroupChildren(groupName: string): Promise<GroupNode[]> {
+  return request<GroupDto[]>(`/group/${encodeURIComponent(groupName)}/children`).then((groups) =>
     groups.map(mapGroupDto),
+  )
+}
+
+export function fetchGroupQuestions(groupName: string): Promise<Question[]> {
+  return request<QuestionDto[]>(`/question/group/${encodeURIComponent(groupName)}`).then((questions) =>
+    questions.map(mapQuestion),
   )
 }
 
@@ -325,15 +308,16 @@ export function deleteGroup(groupName: string) {
   })
 }
 
+// Questions
 export function createQuestion(groupName: string, title: LocalizedText, text: LocalizedText) {
-  return request<void>('/question', {
+  return request<QuestionDto>('/question', {
     method: 'POST',
     body: JSON.stringify({ groupName, title, text }),
   })
 }
 
 export function updateQuestion(questionId: string, title: LocalizedText, text: LocalizedText) {
-  return request<QuestionResponseDto>(`/question/${encodeURIComponent(questionId)}`, {
+  return request<QuestionDto>(`/question/${encodeURIComponent(questionId)}`, {
     method: 'PATCH',
     body: JSON.stringify({ title, text }),
   })
@@ -345,6 +329,16 @@ export function deleteQuestion(questionId: string) {
   })
 }
 
+// UiMessages
+export async function fetchUiMessages(): Promise<UiMessage[]> {
+  const messages = await request<UiMessageResponseDto[]>('/ui-message')
+  const uniqueByName = new Map<string, UiMessageResponseDto>()
+  for (const message of messages) {
+    uniqueByName.set(message.name, message)
+  }
+  return Array.from(uniqueByName.values()).map(mapUiMessage)
+}
+
 export function updateUiMessage(messageName: string, text: LocalizedText) {
   return request<UiMessageResponseDto>(`/ui-message/${encodeURIComponent(messageName)}`, {
     method: 'PATCH',
@@ -352,23 +346,37 @@ export function updateUiMessage(messageName: string, text: LocalizedText) {
   })
 }
 
-export function mapGroupDto(dto: GroupDto) {
-  return {
-    name: dto.name,
-    title: dto.title ?? {},
-    parentName: dto.parentName ?? '',
-    childrenNames: [],
-    questions: [],
-    isLoaded: false,
-  } satisfies GroupNode
-}
-
-export { mapQuestion, mapUiMessage, mapGroup }
-
+// Statistics
 export function fetchTopLanguages() {
   return request<LanguageCountResponse[]>('/statistic/topLanguages')
 }
 
 export function fetchTopQuestions() {
   return request<TopQuestionResponse[]>('/statistic/topQuestions')
+}
+
+// Files
+export type QuestionFileDto = {
+  fileHash: string
+  fileName: string
+}
+
+export function uploadFile(file: File): Promise<QuestionFileDto> {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request<QuestionFileDto>('/file', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export function fetchQuestionFiles(questionId: string): Promise<QuestionFileDto[]> {
+  return request<QuestionFileDto[]>(`/question/${encodeURIComponent(questionId)}/files`)
+}
+
+export function updateQuestionFiles(questionId: string, fileHashes: string[]): Promise<void> {
+  return request<void>(`/question/${encodeURIComponent(questionId)}/files`, {
+    method: 'PUT',
+    body: JSON.stringify(fileHashes),
+  })
 }

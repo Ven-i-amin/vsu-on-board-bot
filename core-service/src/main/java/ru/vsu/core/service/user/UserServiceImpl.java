@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.vsu.core.component.mapper.UserMapper;
 import ru.vsu.core.model.dto.UserDto;
 import ru.vsu.core.model.response.LanguageCountResponse;
-import ru.vsu.core.repository.UserRepository;
+import ru.vsu.core.repository.mongo.UserRepository;
 
 import java.util.List;
 

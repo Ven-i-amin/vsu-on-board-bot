@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -18,8 +19,8 @@ import java.util.Map;
 public class Group {
     @Id
     private String groupId;
-    @Indexed(unique=true)
+    @Indexed(unique = true)
     private String name;
     private Map<String, String> title;
-    private String parentName;
+    private List<String> parents;
 }

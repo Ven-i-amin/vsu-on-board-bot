@@ -61,7 +61,6 @@ public class QueryServiceImpl implements QueryService {
                     .botState(BotState.SEND)
                     .messageState(MessageState.WELCOME)
                     .globalState(MainMenuState.BLOCK)
-                    .groupWindow(new java.util.ArrayList<>())
                     .langCode(language)
                     .build();
         }

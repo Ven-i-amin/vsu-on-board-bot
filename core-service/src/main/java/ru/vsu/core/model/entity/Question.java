@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -21,6 +23,8 @@ public class Question {
     private String groupName;
     private Map<String, String> title;
     private Map<String, String> text;
+    @Builder.Default
+    private List<String> fileHashes = new ArrayList<>();
     @Builder.Default
     private Integer using = 0;
 }
